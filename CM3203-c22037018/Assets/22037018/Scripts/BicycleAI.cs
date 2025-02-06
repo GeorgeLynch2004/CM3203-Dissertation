@@ -26,8 +26,6 @@ public class BicycleAI : MonoBehaviour
     void Update()
     {
         currentAIDirective.Invoke();
-        var path = new NavMeshPath();
-        navmeshAgent.CalculatePath(carrotOnTheStick.position, path);
     }
 
     public void increasePace()
@@ -48,5 +46,15 @@ public class BicycleAI : MonoBehaviour
     public void rotatePaceline()
     {
 
+    }
+
+    public void updateTargetPosition(Transform destination)
+    {
+        carrotOnTheStick = destination;
+    }
+
+    public Transform getTargetPosition()
+    {
+        return carrotOnTheStick;
     }
 }
