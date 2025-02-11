@@ -25,10 +25,12 @@ public class BicycleAI : MonoBehaviour
     // Navmesh
     [SerializeField] private NavMeshAgent navmeshAgent;
     [SerializeField] private Transform carrotOnTheStick;
+    [SerializeField] private Transform anticipationCollider;
 
     // Collisions
     [SerializeField] private Transform bikeInfront;
     [SerializeField] private Transform bikeBehind;
+    [SerializeField] private Transform anticipationCollision;
 
     // Player Object Reference
     [SerializeField] private GameObject playerObject;
@@ -88,30 +90,52 @@ public class BicycleAI : MonoBehaviour
 
     public void Overtake()
     {
-        if (IsAIInPath() && overtakeCoroutine == null)
+        if (IsBicycleInPath() && overtakeCoroutine == null)
         {
             overtakeCoroutine = StartCoroutine(OvertakeRoutine());
         }
     }
 
-    private bool IsAIInPath()
+    private bool IsBicycleInPath()
     {
+        float raycastDistance = detectionDistance; // Adjust this based on how far ahead you want to check.
+
         if (navmeshAgent.path == null || navmeshAgent.path.corners.Length < 2)
             return false;
 
         Vector3[] pathCorners = navmeshAgent.path.corners;
+        Vector3 lastPoint = pathCorners[0];
+        
         for (int i = 0; i < pathCorners.Length - 1; i++)
         {
             Vector3 direction = (pathCorners[i + 1] - pathCorners[i]).normalized;
             float segmentLength = Vector3.Distance(pathCorners[i], pathCorners[i + 1]);
+
+            // Ensure we only check within the defined raycastDistance
+            if (segmentLength > raycastDistance)
+            {
+                segmentLength = raycastDistance;
+            }
+
             if (Physics.Raycast(pathCorners[i], direction, out RaycastHit hit, segmentLength, aiLayer))
             {
-                if (hit.collider.CompareTag("AI"))
+                if (hit.collider.CompareTag("Bicycle"))
                 {
+                    UpdateCollisionAnticipationColliderPosition(hit.point);
                     return true;
                 }
             }
+            
+            lastPoint = pathCorners[i] + direction * segmentLength;
+            raycastDistance -= segmentLength;
+            if (raycastDistance <= 0)
+            {
+                break;
+            }
         }
+        
+        // If no hit, set anticipation collider to end of raycast
+        UpdateCollisionAnticipationColliderPosition(lastPoint);
         return false;
     }
 
@@ -133,7 +157,7 @@ public class BicycleAI : MonoBehaviour
             elapsedTime += Time.deltaTime;
             yield return null;
         }
-        
+
         overtakeCoroutine = null;
     }
 
@@ -142,29 +166,53 @@ public class BicycleAI : MonoBehaviour
         if (navmeshAgent != null && navmeshAgent.path != null && navmeshAgent.path.corners.Length > 1)
         {
             Gizmos.color = Color.black;
+            float raycastDistance = detectionDistance; // Same distance as used in the IsBicycleInPath method
             Vector3[] pathCorners = navmeshAgent.path.corners;
-            for (int i = 0; i < pathCorners.Length - 1; i++)
+
+            for (int i = 0; i < pathCorners.Length - 1 && raycastDistance > 0; i++)
             {
-                Gizmos.DrawLine(pathCorners[i], pathCorners[i + 1]);
-                Gizmos.color = Color.black;
-                Gizmos.DrawRay(pathCorners[i], (pathCorners[i + 1] - pathCorners[i]).normalized * Vector3.Distance(pathCorners[i], pathCorners[i + 1]));
+                Vector3 direction = (pathCorners[i + 1] - pathCorners[i]).normalized;
+                float segmentLength = Vector3.Distance(pathCorners[i], pathCorners[i + 1]);
+
+                if (segmentLength > raycastDistance)
+                {
+                    segmentLength = raycastDistance;
+                }
+
+                Gizmos.DrawRay(pathCorners[i], direction * segmentLength);
+
+                raycastDistance -= segmentLength;
             }
         }
     }
 
+    private void UpdateCollisionAnticipationColliderPosition(Vector3 pos)
+    {
+        if (anticipationCollider != null)
+        {
+            anticipationCollider.position = pos;
+        }
+    }
 
     #endregion
 
 
-    public void SetCollisionFrontRear(Transform obj, bool frontFlag)
+
+
+
+    public void SetCollision(Transform obj, ColliderType colType)
     {
-        if (frontFlag)
+        if (colType == ColliderType.front)
         {
             bikeInfront = obj;
         }
-        else
+        else if (colType == ColliderType.back)
         {
             bikeBehind = obj;
+        }
+        else if (colType == ColliderType.anticipation)
+        {
+            anticipationCollision = obj;
         }
     }
 

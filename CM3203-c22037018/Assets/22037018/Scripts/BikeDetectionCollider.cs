@@ -2,15 +2,25 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+public enum ColliderType
+    {
+        front,
+        back,
+        anticipation,
+    }
+
 public class BikeDetectionCollider : MonoBehaviour
 {
+    
+
+    [SerializeField] private ColliderType colliderType;
     [SerializeField] private BicycleAI parent;
-    [SerializeField] private bool frontFlag;
 
     private void OnTriggerEnter(Collider other) {
         if (other.gameObject.tag == "Player" || other.gameObject.tag == "AI")
         {
-            parent.GetComponent<BicycleAI>().SetCollisionFrontRear(other.gameObject.transform.root, frontFlag);
+            parent.GetComponent<BicycleAI>().SetCollision(other.gameObject.transform.root, colliderType);
         }
 
     }
@@ -18,7 +28,7 @@ public class BikeDetectionCollider : MonoBehaviour
     private void OnTriggerExit(Collider other) {
         if (other.gameObject.tag == "Player" || other.gameObject.tag == "AI")
         {
-            parent.GetComponent<BicycleAI>().SetCollisionFrontRear(null, frontFlag);
+            parent.GetComponent<BicycleAI>().SetCollision(null, colliderType);
         }
     }
 
