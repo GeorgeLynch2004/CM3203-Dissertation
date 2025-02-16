@@ -6,25 +6,30 @@ using UnityEngine.AI;
 
 public enum AIType
 {
-    Player,
+    Player, 
     Competitor,
     Teammate
+}
+
+public enum AIState
+{
+    Pulling,
+    Drafting,
 }
 
 public class BicycleAI : MonoBehaviour
 {
     // AI Type
     [SerializeField] private AIType aiType;
+    [SerializeField] private AIState aiState;
 
-    // Events
-    [SerializeField] private UnityEvent currentAIDirective;
-    [SerializeField] private UnityEvent neutralActions;
-    [SerializeField] private UnityEvent offenceActions;
-    [SerializeField] private UnityEvent defenceActions;
 
     // Navmesh
     [SerializeField] private NavMeshAgent navmeshAgent;
-    [SerializeField] private Transform carrotOnTheStick;
+    [SerializeField] private Transform MapTargetPosition;
+    [SerializeField] private Transform pacelineTargetPosition;
+    [SerializeField] private float selfPathDistance;
+    [SerializeField] private float targetsPathDistance;
     [SerializeField] private Transform anticipationCollider;
 
     // Collisions
@@ -34,6 +39,7 @@ public class BicycleAI : MonoBehaviour
 
     // Player Object Reference
     [SerializeField] private GameObject playerObject;
+    [SerializeField] private Transform bodyParent;
 
     // Overtake Coroutine
     private Coroutine overtakeCoroutine;
@@ -49,12 +55,21 @@ public class BicycleAI : MonoBehaviour
         navmeshAgent = GetComponent<NavMeshAgent>();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update() 
     {
-        navmeshAgent.SetDestination(carrotOnTheStick.position);
-        currentAIDirective.Invoke();
+        if (aiType == AIType.Teammate)
+        {
+            if (aiState == AIState.Pulling)
+            {
+                TakePull(MapTargetPosition);
+            }
+            else if (aiState == AIState.Drafting)
+            {
+                DraftTeammate(pacelineTargetPosition);
+            }
+        }    
     }
+
 
 
     // AI Type: Player
@@ -65,14 +80,95 @@ public class BicycleAI : MonoBehaviour
 
     // AI Type: Teammate
 
-    private void DraftTeammate()
+    public void TakePull(Transform target)
     {
-
+        navmeshAgent.SetDestination(target.position);
     }
 
-    private void PaceLineSequence()
+    public void DraftTeammate(Transform target)
     {
+        navmeshAgent.SetDestination(target.position);
 
+        selfPathDistance = GetPathDistance(navmeshAgent, transform.position);
+        targetsPathDistance = GetPathDistance(navmeshAgent, pacelineTargetPosition.position);
+
+        if (targetsPathDistance > 6f)
+        {
+            UpdatePace(pacelineTargetPosition.GetComponent<NavMeshAgent>().speed + 2);
+        }
+        else if (targetsPathDistance < 4f)
+        {
+            UpdatePace(pacelineTargetPosition.GetComponent<NavMeshAgent>().speed - 2);
+        }
+        else
+        {
+            UpdatePace(pacelineTargetPosition.GetComponent<NavMeshAgent>().speed);
+        }
+    }
+
+    public void PeelOffPaceLine()
+    {
+        StartCoroutine(PeelOffRoutine());
+    }
+
+    private IEnumerator PeelOffRoutine()
+    {
+        float peelOffDuration = 1.5f; // Time to move sideways
+        float rejoinDuration = 1.5f; // Time to move back behind
+        float elapsedTime = 0f;
+
+        Transform rootTransform = transform; // Root reference
+        Vector3 sideDirection = rootTransform.right.normalized; // Get right direction
+
+        // // Step 1: Move bodyParent to the right (peel off)
+        // while (elapsedTime < peelOffDuration)
+        // {
+        //     Vector3 newPosition = bodyParent.position + sideDirection * (.5f / peelOffDuration * Time.deltaTime);
+        //     bodyParent.position = newPosition;
+
+        //     elapsedTime += Time.deltaTime;
+        //     yield return null;
+        // }
+
+        // Step 2: Reduce pace and move backward
+        elapsedTime = 0f;
+        while (elapsedTime < rejoinDuration)
+        {
+            UpdatePace(pacelineTargetPosition.GetComponent<NavMeshAgent>().speed - 2);
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // Step 3: Wait until rejoining is possible (bikeInFront == pacelineTarget)
+        while (bikeInfront != pacelineTargetPosition)
+        {
+            yield return null; // Keep checking every frame
+        }
+
+        // // Step 4: Move bodyParent back left to rejoin the paceline
+        // elapsedTime = 0f;
+        // while (elapsedTime < peelOffDuration)
+        // {
+        //     Vector3 newPosition = bodyParent.position - sideDirection * (2f / peelOffDuration * Time.deltaTime);
+        //     bodyParent.position = newPosition;
+
+        //     elapsedTime += Time.deltaTime;
+        //     yield return null;
+        // }
+    }
+
+    public void UpdatePacelinePosition(Transform target)
+    {
+        if (target == null)
+        {
+            aiState = AIState.Pulling;
+            pacelineTargetPosition = null;
+        }
+        else
+        {
+            aiState = AIState.Drafting;
+            pacelineTargetPosition = target;
+        }
     }
 
 
@@ -90,7 +186,7 @@ public class BicycleAI : MonoBehaviour
 
     public void Overtake()
     {
-        if (IsBicycleInPath() && overtakeCoroutine == null)
+        if ((IsBicycleInPath() || anticipationCollision != null) && overtakeCoroutine == null)
         {
             overtakeCoroutine = StartCoroutine(OvertakeRoutine());
         }
@@ -139,19 +235,79 @@ public class BicycleAI : MonoBehaviour
         return false;
     }
 
+    private List<Transform> GetBicyclesInPath()
+    {
+        List<Transform> bicycles = new List<Transform>();
+        RaycastHit[] hits = Physics.RaycastAll(transform.position, transform.forward, detectionDistance, aiLayer);
+
+        foreach (RaycastHit hit in hits)
+        {
+            if (hit.collider.CompareTag("Bicycle"))
+            {
+                bicycles.Add(hit.transform);
+            }
+        }
+
+        return bicycles;
+    }
+
+    private bool AreAnyBicyclesStillAhead(List<Transform> bicycles)
+    {
+        foreach (Transform bicycle in bicycles)
+        {
+            if (bicycle == null) continue; // Skip destroyed bicycles
+
+            Vector3 aiVelocity = navmeshAgent.velocity.normalized; // AI’s movement direction
+            Vector3 bicycleVelocity = bicycle.GetComponent<NavMeshAgent>().velocity.normalized; // Bicycle’s movement direction
+
+            Vector3 aiToBicycle = bicycle.position - transform.position;
+
+            // Project AI-to-Bicycle vector onto movement direction
+            float relativePosition = Vector3.Dot(aiToBicycle, aiVelocity);
+
+            if (relativePosition > 0) // If the bicycle is still ahead in AI’s movement direction
+            {
+                return true;
+            }
+        }
+
+        return false; // All overtaken bicycles are now behind
+    }
+
     private IEnumerator OvertakeRoutine()
     {
-        float duration = 1.5f; // Duration of the overtake maneuver
+        float duration = 1.5f; // Duration to move sideways
         float elapsedTime = 0f;
-        Vector3 startOffset = Vector3.right * 2f; // Move 2 units to the right
+        Vector3 startOffset = transform.right * 2f; // Move 2 units to the right
         Vector3 startPosition = navmeshAgent.transform.position;
         Vector3 targetPosition = startPosition + startOffset;
 
+        // Detect all bicycles currently in the path at the start of overtaking
+        List<Transform> overtakenBicycles = GetBicyclesInPath();
+
+        // Move sideways to overtake
         while (elapsedTime < duration)
         {
-            float t = elapsedTime / duration;
             Vector3 currentBasePosition = navmeshAgent.transform.position;
             Vector3 newPosition = Vector3.Lerp(currentBasePosition, currentBasePosition + startOffset, Time.deltaTime / duration);
+            navmeshAgent.transform.position = newPosition;
+
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        // Wait until the AI has fully overtaken all tracked bicycles
+        while (AreAnyBicyclesStillAhead(overtakenBicycles))
+        {
+            yield return null; // Keep waiting
+        }
+
+        // Move back to original path
+        elapsedTime = 0f;
+        while (elapsedTime < duration)
+        {
+            Vector3 currentBasePosition = navmeshAgent.transform.position;
+            Vector3 newPosition = Vector3.Lerp(currentBasePosition, currentBasePosition - startOffset, Time.deltaTime / duration);
             navmeshAgent.transform.position = newPosition;
 
             elapsedTime += Time.deltaTime;
@@ -196,8 +352,18 @@ public class BicycleAI : MonoBehaviour
 
     #endregion
 
+    private float GetPathDistance(NavMeshAgent agent, Vector3 position)
+    {
+        NavMeshPath path = new NavMeshPath();
+        agent.CalculatePath(position, path);
 
-
+        float totalDistance = 0f;
+        for (int i = 1; i < path.corners.Length; i++)
+        {
+            totalDistance += Vector3.Distance(path.corners[i - 1], path.corners[i]);
+        }
+        return totalDistance;
+    }
 
 
     public void SetCollision(Transform obj, ColliderType colType)
@@ -216,13 +382,24 @@ public class BicycleAI : MonoBehaviour
         }
     }
 
-    public void updateTargetPosition(Transform destination)
+    public void updateMapTargetPosition(Transform destination)
     {
-        carrotOnTheStick = destination;
+        MapTargetPosition = destination;
     }
 
-    public Transform getTargetPosition()
+    public Transform getMapTargetPosition()
     {
-        return carrotOnTheStick;
+        return MapTargetPosition;
+    }
+
+
+    public AIType GetAIType()
+    {
+        return aiType;
+    }
+
+    public void SetAIState(AIState state)
+    {
+        aiState = state;
     }
 }

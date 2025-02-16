@@ -15,9 +15,9 @@ public class ChaseCollider : MonoBehaviour
         {
             BicycleAI ai = other.gameObject.GetComponent<BicycleAI>();
 
-            if (ai.getTargetPosition() != carrot)
+            if (ai.getMapTargetPosition() != carrot)
             {
-                ai.updateTargetPosition(carrot);
+                ai.updateMapTargetPosition(carrot);
             }
         }
     }
