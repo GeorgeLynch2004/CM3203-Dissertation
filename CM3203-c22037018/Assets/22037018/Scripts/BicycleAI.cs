@@ -19,6 +19,8 @@ public enum AIState
 
 public class BicycleAI : MonoBehaviour
 {
+    #region variables
+
     // AI Type
     [SerializeField] private AIType aiType;
     [SerializeField] private AIState aiState;
@@ -46,6 +48,13 @@ public class BicycleAI : MonoBehaviour
     public Transform raycastOrigin;
     public LayerMask aiLayer;
     public float detectionDistance = 5f;
+
+    // Path smoothing
+    [SerializeField, Range(0,10)] private int smoothingFactor = 5;
+
+    
+
+    #endregion
 
 
     // Start is called before the first frame update
@@ -78,16 +87,16 @@ public class BicycleAI : MonoBehaviour
     // AI Type: Competitor
  
 
-    // AI Type: Teammate
+    #region AI Type: Teammate
 
     public void TakePull(Transform target)
     {
-        navmeshAgent.SetDestination(target.position);
+        SetSmoothedDestination(target.position);
     }
 
     public void DraftTeammate(Transform target)
     {
-        navmeshAgent.SetDestination(target.position);
+        SetSmoothedDestination(target.position);
 
         selfPathDistance = GetPathDistance(navmeshAgent, transform.position);
         targetsPathDistance = GetPathDistance(navmeshAgent, pacelineTargetPosition.position);
@@ -171,6 +180,7 @@ public class BicycleAI : MonoBehaviour
         }
     }
 
+    #endregion
 
     // AI Type: All
 
@@ -181,6 +191,112 @@ public class BicycleAI : MonoBehaviour
             navmeshAgent.speed = speed;
         }
     }
+
+    #region Path Smoothing
+
+    private void SetSmoothedDestination(Vector3 pos)
+    {
+        NavMeshPath path = new NavMeshPath();
+        
+        if (!navmeshAgent.CalculatePath(pos, path) || path.status != NavMeshPathStatus.PathComplete)
+        {
+            Debug.LogWarning("Invalid or incomplete path! Path status: " + path.status);
+            return;
+        }
+
+        List<Vector3> smoothed = SmoothPath(path);
+        
+        if (smoothed.Count > 1)
+        {
+            FollowSmoothedPath(smoothed);
+        }
+        else
+        {
+            Debug.LogWarning("Smoothed path is empty! Unable to navigate.");
+        }
+    }
+
+    private void EnsureAgentOnNavMesh()
+    {
+        if (!NavMesh.SamplePosition(transform.position, out NavMeshHit hit, 2.0f, NavMesh.AllAreas))
+        {
+            Debug.LogError("Agent is not on the NavMesh!");
+            return;
+        }
+
+        transform.position = hit.position;
+        navmeshAgent.Warp(hit.position);
+    }
+
+
+    private List<Vector3> SmoothPath(NavMeshPath path)
+    {
+        List<Vector3> smoothedPath = new List<Vector3>();
+        Vector3[] corners = path.corners;
+        
+        if (corners.Length < 2)
+        {
+            return smoothedPath;
+        }
+
+        for (int i = 0; i < corners.Length - 1; i++)
+        {
+            Vector3 p0 = corners[Mathf.Max(i - 1, 0)];
+            Vector3 p1 = corners[i];
+            Vector3 p2 = corners[i + 1];
+            Vector3 p3 = corners[Mathf.Min(i + 2, corners.Length - 1)];
+
+            for (int tIndex = 0; tIndex <= smoothingFactor; tIndex++)
+            {
+                float t = tIndex / (float)smoothingFactor;
+                Vector3 point = CalculateBezierPoint(t, p0, p1, p2, p3);
+                
+                if (NavMesh.SamplePosition(point, out NavMeshHit hit, 1.0f, NavMesh.AllAreas))
+                {
+                    smoothedPath.Add(hit.position);
+                }
+            }
+        }
+
+        return smoothedPath;
+    }
+
+    private void FollowSmoothedPath(List<Vector3> pathPoints)
+    {
+        StartCoroutine(FollowPathCoroutine(pathPoints));
+    }
+
+    private IEnumerator FollowPathCoroutine(List<Vector3> pathPoints)
+    {
+        foreach (Vector3 point in pathPoints)
+        {
+            navmeshAgent.SetDestination(point);
+            float timeout = 5f; // Max time to wait per waypoint
+            float timer = 0f;
+
+            while (!navmeshAgent.pathPending && 
+                navmeshAgent.remainingDistance > navmeshAgent.stoppingDistance && 
+                timer < timeout)
+            {
+                timer += Time.deltaTime;
+                yield return null;
+            }
+        }
+    }
+
+
+    private Vector3 CalculateBezierPoint(float t, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
+    {
+        float u = 1 - t;
+        float tt = t * t;
+        float uu = u * u;
+        float uuu = uu * u;
+        float ttt = tt * t;
+
+        return (uuu * p0) + (3 * uu * t * p1) + (3 * u * tt * p2) + (ttt * p3);
+    }
+
+    #endregion
 
     #region Overtaking
 
@@ -352,6 +468,8 @@ public class BicycleAI : MonoBehaviour
 
     #endregion
 
+    #region Getters and Setters
+
     private float GetPathDistance(NavMeshAgent agent, Vector3 position)
     {
         NavMeshPath path = new NavMeshPath();
@@ -402,4 +520,6 @@ public class BicycleAI : MonoBehaviour
     {
         aiState = state;
     }
+
+    #endregion
 }
