@@ -27,14 +27,16 @@ public class BicycleAI : MonoBehaviour
 
 
     // Navmesh
+    [Header("Navmesh Settings")]
     [SerializeField] private NavMeshAgent navmeshAgent;
     [SerializeField] private Transform MapTargetPosition;
     [SerializeField] private Transform pacelineTargetPosition;
     [SerializeField] private float selfPathDistance;
     [SerializeField] private float targetsPathDistance;
-    [SerializeField] private Transform anticipationCollider;
 
     // Collisions
+    [Header("Collision Settings")]
+    [SerializeField] private Transform anticipationCollider;
     [SerializeField] private Transform bikeInfront;
     [SerializeField] private Transform bikeBehind;
     [SerializeField] private Transform anticipationCollision;
@@ -50,7 +52,8 @@ public class BicycleAI : MonoBehaviour
     public float detectionDistance = 5f;
 
     // Path smoothing
-    [SerializeField, Range(0,10)] private int smoothingFactor = 5;
+    [Header("Path Smoothing Settings")]
+    [SerializeField, Range(0,100)] private int smoothingFactor = 5;
 
     
 
@@ -76,7 +79,11 @@ public class BicycleAI : MonoBehaviour
             {
                 DraftTeammate(pacelineTargetPosition);
             }
-        }    
+        }   
+        if (aiType == AIType.Player)
+        {
+            TakePull(MapTargetPosition);
+        } 
     }
 
 
@@ -204,7 +211,7 @@ public class BicycleAI : MonoBehaviour
             return;
         }
 
-        List<Vector3> smoothed = SmoothPath(path);
+        List<Vector3> smoothed = SmoothPathWithCatmullRom(path);
         
         if (smoothed.Count > 1)
         {
@@ -259,6 +266,56 @@ public class BicycleAI : MonoBehaviour
         }
 
         return smoothedPath;
+    }
+
+    private List<Vector3> SmoothPathWithCatmullRom(NavMeshPath path)
+    {
+        List<Vector3> smoothedPath = new List<Vector3>();
+        Vector3[] corners = path.corners;
+
+        if (corners.Length < 2)
+        {
+            Debug.LogWarning("Path has less than 2 corners, cannot smooth.");
+            return smoothedPath;
+        }
+
+        for (int i = 0; i < corners.Length - 1; i++)
+        {
+            Vector3 p0 = corners[Mathf.Max(i - 1, 0)];
+            Vector3 p1 = corners[i];
+            Vector3 p2 = corners[i + 1];
+            Vector3 p3 = corners[Mathf.Min(i + 2, corners.Length - 1)];
+
+            for (int tIndex = 0; tIndex <= smoothingFactor; tIndex++)
+            {
+                float t = tIndex / (float)smoothingFactor;
+                Vector3 point = CalculateCatmullRomPoint(t, p0, p1, p2, p3);
+
+                if (NavMesh.SamplePosition(point, out NavMeshHit hit, 2.0f, NavMesh.AllAreas)) // Increased radius to 2.0f
+                {
+                    smoothedPath.Add(hit.position);
+                }
+                else
+                {
+                    Debug.LogWarning("Failed to sample position on NavMesh for point: " + point);
+                }
+            }
+        }
+
+        return smoothedPath;
+    }
+
+    private Vector3 CalculateCatmullRomPoint(float t, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
+    {
+        float t2 = t * t;
+        float t3 = t2 * t;
+
+        float a0 = -0.5f * t3 + t2 - 0.5f * t;
+        float a1 = 1.5f * t3 - 2.5f * t2 + 1.0f;
+        float a2 = -1.5f * t3 + 2.0f * t2 + 0.5f * t;
+        float a3 = 0.5f * t3 - 0.5f * t2;
+
+        return a0 * p0 + a1 * p1 + a2 * p2 + a3 * p3;
     }
 
     private void FollowSmoothedPath(List<Vector3> pathPoints)

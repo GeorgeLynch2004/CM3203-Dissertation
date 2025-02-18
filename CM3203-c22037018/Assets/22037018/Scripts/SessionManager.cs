@@ -10,15 +10,27 @@ public enum ScenarioMode
     Competitive
 }
 
+public enum ResistanceProfile
+{
+    Consistent,
+    Ramp,
+}
+
 public class SessionManager : MonoBehaviour
 {
     [SerializeField] private ScenarioMode scenarioMode;
+    [SerializeField] private ResistanceProfile resistanceProfile;
 
     [SerializeField] private List<GameObject> activeAI = new List<GameObject>();
 
     // Cooperative Mode: Paceline Rotation
     [SerializeField] private float pullTime; // Time each AI spends at the front
     private Coroutine pacelineCoroutine;
+
+    [Header("Ramp Test Settings")]
+    [SerializeField] private float warmupDuration;
+    [SerializeField] private float rampDuration = 60; // 1 minute
+    [SerializeField] private float rampIncrement = 0.1f; // 10% every 10 seconds
 
     private void Start()
     {
@@ -29,6 +41,11 @@ public class SessionManager : MonoBehaviour
     private void BeginSession()
     {
         Init();
+
+        if (resistanceProfile == ResistanceProfile.Ramp)
+        {
+            StartCoroutine(RampTest());
+        }
 
         if (scenarioMode == ScenarioMode.Cooperative && activeAI.Count > 1)
         {
@@ -88,4 +105,40 @@ public class SessionManager : MonoBehaviour
             }
         }
     }
+
+    #region Ramp Test
+
+    private IEnumerator RampTest()
+    {
+        float rampTime = 0;
+
+        while (rampTime < rampDuration)
+        {
+            rampTime += Time.deltaTime;
+            yield return new WaitForSeconds(10);
+
+            foreach (GameObject ai in activeAI)
+            {
+                ai.GetComponent<UnityEngine.AI.NavMeshAgent>().speed = CalculateSpeed(0,0,0);
+            }
+        }
+    }
+
+    #endregion
+
+    #region Data Handling
+
+    public float CalculateSpeed(float cadence, float resistance, float power)
+    {
+        // Example formula: Speed estimation for a Wattbike (adjust as needed)
+        float speed = (cadence * 0.1f) + (resistance * 0.2f) + (power * 0.05f);
+        return speed;
+    }
+
+    public void IncreaseResistance(float resistance)
+    {
+        // method to increase resistance
+    }
+
+    #endregion
 }
