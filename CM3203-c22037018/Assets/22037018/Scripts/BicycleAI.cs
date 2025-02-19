@@ -150,7 +150,7 @@ public class BicycleAI : MonoBehaviour
         elapsedTime = 0f;
         while (elapsedTime < rejoinDuration)
         {
-            UpdatePace(pacelineTargetPosition.GetComponent<NavMeshAgent>().speed - 2);
+            if (pacelineTargetPosition != null) UpdatePace(pacelineTargetPosition.GetComponent<NavMeshAgent>().speed - 2);
             elapsedTime += Time.deltaTime;
             yield return null;
         }
