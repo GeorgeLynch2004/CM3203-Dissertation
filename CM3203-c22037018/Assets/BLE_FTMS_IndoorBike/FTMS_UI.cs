@@ -10,15 +10,15 @@ public class FTMS_UI : MonoBehaviour
     public FTMS_IndoorBike connector;
     public Text info;
     public Text resistance_show;
+    [SerializeField] private DataManager dataManager;
 
-    public string device_name = "APXPRO 46080";
+    public string device_name = "WattbikePT28004316";
     public string service_id = "{00001826-0000-1000-8000-00805f9b34fb}";
     public string read_characteristic = "{00002ad2-0000-1000-8000-00805f9b34fb}";
     public string write_characteristic= "{00002ad9-0000-1000-8000-00805f9b34fb}";
     void Start()
     {
         connector = new FTMS_IndoorBike(this);
-
     }
 
     public void connect() {
@@ -44,6 +44,7 @@ public class FTMS_UI : MonoBehaviour
         {
             connector.Update();
             info.text = connector.output;
+            dataManager.ProcessDataFromBike(info.text);
         }
     }
     private void OnApplicationQuit()

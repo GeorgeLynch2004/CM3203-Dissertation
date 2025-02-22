@@ -1,0 +1,81 @@
+next:
+comment out the property iteration
+store the bluetooth address in the transferrable object
+test use of BluetoothAddress instead of RSSI for device association on received advertisement strings. 
+
+2018.03.28 -- 1.3.4.0
+Update for new name accessing Zoom HRV.
+// HRM connection and processing derived from BLE Windows Heart Rate Service example: 
+// https://code.msdn.microsoft.com/windowsapps/bluetooth-generic-5a99ef95
+
+// https://docs.microsoft.com/en-us/uwp/api/windows.devices.enumeration.deviceinformation.findallasync#Windows_Devices_Enumeration_DeviceInformation_FindAllAsync_System_String_Windows_Foundation_Collections_IIterable_System_String__
+           
+ // https://github.com/Microsoft/BluetoothLEExplorer/blob/master/BluetoothLEExplorer/BluetoothLEExplorer/Models/GattSampleContext.cs
+                //   ((dev.DeviceInfo.Properties.Keys.Contains("System.Devices.Aep.Bluetooth.Le.IsConnectable") &&
+                //    (bool)dev.DeviceInfo.Properties["System.Devices.Aep.Bluetooth.Le.IsConnectable"]))
+
+add notes: 
+hrmDeviceInformation
+1.3.4.0
+  // While encryption is not required by all devices, if encryption is supported by the device,
+            // it can be enabled by setting the ProtectionLevel property of the Characteristic object.
+            // All subsequent operations on the characteristic will work over an encrypted link.
+
+            // https://docs.microsoft.com/en-us/uwp/api/windows.devices.bluetooth.genericattributeprofile.gattprotectionlevel
+            // When set to EncryptionRequired the Zoom HRV watch didn't work.
+            // Plain didn't seem to work. More testing may be needed to determine if Plain will work with Zoom. 
+            // Allow user override with enums matching Microsoft enums.  
+            if ( gattProtectionLevel
+
+wgat did ms do in ble explorer to associate advertisement with devices? 
+			
+			https://docs.microsoft.com/en-us/uwp/api/Windows.Devices.Bluetooth.Advertisement
+		https://github.com/Microsoft/Windows-universal-samples/tree/dev/Samples/BluetoothAdvertisement
+
+answer:
+advertisements received in gattcontext:
+https://github.com/Microsoft/BluetoothLEExplorer/blob/61d6ef32d3ea997422c8fa929a0f159ff7837735/BluetoothLEExplorer/BluetoothLEExplorer/Models/GattSampleContext.cs and following check is made:
+ if (d.BluetoothAddressAsUlong == args.BluetoothAddress)
+		
+when a deviceWatcher finds a device, the deviceInfo is passed to the new ObservableBluetoothLEDevice(deviceInfo);
+in constructor, a) DeviceInfo is set. dispatches a property changed event "DeviceInfo"
+		if(DeviceInfo.Properties.ContainsKey("System.Devices.Aep.DeviceAddress"))
+            {
+                BluetoothAddressAsString = ret = DeviceInfo.Properties["System.Devices.Aep.DeviceAddress"].ToString();
+                BluetoothAddressAsUlong = Convert.ToUInt64(BluetoothAddressAsString.Replace(":", String.Empty), 16);
+            }
+later, on received advertiements in GattSampleContext.cs:
+if (d.BluetoothAddressAsUlong == args.BluetoothAddress)
+* confirmed. bluetoothaddress from BluetoothLEDevice matches args.BluetoothAddress. for zoom, 137431040928122	
+		
+Publishing: 
+When you copy the demo project into the Sample Project folder, verify that the HoloLens Toolkit came along. The demo project used a symlink to the Toolkit (I may have changed that), so it doesn't come along when copied. 
+
+Include the HoloToolkit with the distribution files: 
+
+You'll have to delete the Library folder from the nested Sample Project folder otherwise Unity won't open the Project Publication (parent) project. This is OK because opening hte sample project will re-create the Library folder as needed. 
+
+https://publisher.assetstore.unity3d.com/package.html?id=236739
+login: elliot.mebane@gmail.com/(unity account password)
+
+from menu, asset store tools > Package Uploader. Select draft Package you created online. scroll down. 
+Any way to select all files in a folder, i.e., the full sample project folder, so you don't have to drill down into all folders and select each item separately? 
+Do work in sample project separately, then copy contents into the sample project folder in the parent project's asset folder when ready to submit. Delete the library folder. Otherwise, if you work directly in the project as a sub-project of the parent submission project, the library folder you create will have to be deleted when ready to submit. Not a big deal, but prefer to just copy the Assets/Project Settings folders from the *work* project folder into the submission *sample project* folder. 
+
+
+-
+Original *decline* notes from Unity
+
+We ask that you include documentation in the format of .pdf, txt or rtf with your submission, as it is mandatory for all script packages and projects. Create a setup guide with a step-by step tutorial (video or pdf), as well as a script reference if users will need to do any coding.
+
+We ask that you place all your files under a subfolder of the Asset folder, named as your package title. Otherwise your files may get lost if users have the same folder structure as yours. Please also make sure that your folder is well sorted. We suggest that all of the similar file types (Meshes/Scripts/Textures/Prefabs/Ect) be placed in their own common folders instead of having each asset under their own folder.
+
+Currently there are folders outside of the "HoloToolKit" Folder. Please place all other folders inside of it, barring AssetStoreTools. If any folders need to be outside of your main folder for your package to function (i.e. Plugins) please include documentation that tells the user to move the folders themselves.
+
+Attached is a screenshot of the appropriate hierarchy. Do not compress your sample project into a .unitypackage.
+
+
+
+device id: 		BluetoothLE#BluetoothLE9c:b6:d0:18:65:a0-7c:fe:28:60:29:7a#GATT:00000009:{0000180d-0000-1000-8000-00805f9b34fb}
+device property, key: 	BluetoothLEDeviceBluetoothDeviceId, value: BluetoothLE#BluetoothLE9c:b6:d0:18:65:a0-7c:fe:28:60:29:7a
+

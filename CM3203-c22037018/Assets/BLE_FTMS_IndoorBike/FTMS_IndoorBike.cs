@@ -41,7 +41,7 @@ public class FTMS_IndoorBike
     }
 
     // Start is called before the first frame update
-    public IEnumerator connect(string _device_name = "APXPRO 46080", string _service_id = "{00001826-0000-1000-8000-00805f9b34fb}", string _read_characteristic = "{00002ad2-0000-1000-8000-00805f9b34fb}", string _write_characteristic = "{00002ad9-0000-1000-8000-00805f9b34fb}")
+    public IEnumerator connect(string _device_name = "WattbikePT28004316", string _service_id = "{babf1723-cedb-444c-88c3-c672c7a59806}", string _read_characteristic = "{babf1724-cedb-444c-88c3-c672c7a59806}", string _write_characteristic = "{babf1725-cedb-444c-88c3-c672c7a59806}")
     {
         if (!want_connect) yield break;
 

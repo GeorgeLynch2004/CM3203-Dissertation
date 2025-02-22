@@ -1,10 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using Unity.XR.CoreUtils;
 using UnityEngine;
+using UnityEngine.XR;
 
 public enum ScenarioMode
 {
+    Undecided,
     Baseline,
     Cooperative,
     Competitive
@@ -18,12 +22,22 @@ public enum ResistanceProfile
 
 public class SessionManager : MonoBehaviour
 {
+    [Header("Scenario Settings")]
     [SerializeField] private ScenarioMode scenarioMode;
+    private ScenarioMode previousFrameScenarioMode;
     [SerializeField] private ResistanceProfile resistanceProfile;
+
+    [Header("XR Settings")]
+    [SerializeField] private GameObject XROrigin;
+    [SerializeField] private Transform spawnPose;
+    [SerializeField] private Transform bikePose;
+    private bool lerping;
+    private XRInputSubsystem xrInputSubsystem;
 
     [SerializeField] private List<GameObject> activeAI = new List<GameObject>();
 
     // Cooperative Mode: Paceline Rotation
+    [Header("Paceline Settings")]
     [SerializeField] private float pullTime; // Time each AI spends at the front
     private Coroutine pacelineCoroutine;
 
@@ -35,25 +49,44 @@ public class SessionManager : MonoBehaviour
     private void Start()
     {
         DontDestroyOnLoad(gameObject);
-        BeginSession();
+        lerping = false;
+    }
+
+    private void Update()
+    {
+        HandleScenarioModeChange();
     }
 
     private void BeginSession()
     {
-        Init();
+        InitBikeObjects();
 
+        // Resistance Profile Logic
         if (resistanceProfile == ResistanceProfile.Ramp)
         {
             StartCoroutine(RampTest());
         }
+        if (resistanceProfile != ResistanceProfile.Consistent)
+        {
+            // for if resistance is wanted to stay the same
+        }
 
+        // Scenario Mode Logic
+        if (scenarioMode != ScenarioMode.Baseline) 
+        {
+            // baseline logic here    
+        }
         if (scenarioMode == ScenarioMode.Cooperative && activeAI.Count > 1)
         {
             pacelineCoroutine = StartCoroutine(PacelineRoutine());
         }
+        if (scenarioMode == ScenarioMode.Competitive && activeAI.Count > 1)
+        {
+            // competitive logic here
+        }
     }
 
-    private void Init()
+    private void InitBikeObjects()
     {
         activeAI = GameObject.FindGameObjectsWithTag("AI")
             .Where(ai =>
@@ -61,7 +94,150 @@ public class SessionManager : MonoBehaviour
                 (scenarioMode == ScenarioMode.Competitive && ai.GetComponent<BicycleAI>().GetAIType() == AIType.Competitor))
             .OrderBy(ai => Vector3.Distance(ai.transform.position, Vector3.zero))
             .ToList();
+
+
     }
+
+    #region Developer Menu
+
+    // Method to recenter the headset
+    // Method to get the running XR Input Subsystem
+    // Method to get the running XR Input Subsystem
+    private XRInputSubsystem GetXRInputSubsystem()
+    {
+        List<XRInputSubsystem> inputSubsystems = new List<XRInputSubsystem>();
+
+        // Get all the running XR input subsystems (this will give us a list of subsystems)
+        SubsystemManager.GetInstances(inputSubsystems);
+
+        // Log all available subsystems for debugging purposes
+        if (inputSubsystems.Count == 0)
+        {
+            Debug.LogError("No XRInputSubsystems found.");
+        }
+        else
+        {
+            foreach (var subsystem in inputSubsystems)
+            {
+                Debug.Log("Found XRInputSubsystem: " + subsystem);
+            }
+        }
+
+        // Find the first running XRInputSubsystem
+        foreach (var subsystem in inputSubsystems)
+        {
+            if (subsystem.running)
+            {
+                Debug.Log("Using XRInputSubsystem: " + subsystem);
+                return subsystem;
+            }
+        }
+
+        return null;  // Return null if no running subsystem found
+    }
+
+    void RecenterXR()
+    {
+        // Get the active XR Input Subsystem
+        xrInputSubsystem = GetXRInputSubsystem();
+
+
+        if (xrInputSubsystem != null)
+        {
+            
+
+            // Recenter the headset
+            bool result = xrInputSubsystem.TryRecenter();
+            Debug.Log("Trying to recenter device." + result);
+        }
+        else
+        {
+            Debug.LogWarning("XRInputSubsystem is null, recentering failed.");
+        }
+    }
+
+
+    #endregion
+
+    #region Scenario Modes
+
+    public void SetBaselineMode()
+    {
+        scenarioMode = ScenarioMode.Baseline;
+    }
+
+    public void SetCooperativeMode()
+    {
+        scenarioMode = ScenarioMode.Cooperative;
+    }
+
+    public void SetCompetitiveMode()
+    {
+        scenarioMode = ScenarioMode.Competitive;
+    }
+
+    private void HandleScenarioModeChange()
+    {
+        if (scenarioMode != previousFrameScenarioMode)
+        {
+            if (scenarioMode == ScenarioMode.Undecided && XROrigin.transform.GetWorldPose() != spawnPose.GetWorldPose())
+            {
+                if (lerping == false) MoveToPose(XROrigin.transform, spawnPose, true);
+            }
+            else if (scenarioMode != ScenarioMode.Undecided && XROrigin.transform.GetWorldPose() != bikePose.GetWorldPose())
+            {
+                if (lerping == false) MoveToPose(XROrigin.transform, bikePose, true);
+            }
+        }
+
+        previousFrameScenarioMode = scenarioMode;
+    }
+
+    #endregion
+
+    #region Manipulating XR Origin
+
+
+    public void MoveToPose(Transform objToMove, Transform destination, bool setParent)
+    {
+        if (setParent)
+        {
+            objToMove.SetParent(destination, true);
+        }
+
+        StartCoroutine(LerpToPose(objToMove, destination, 2f));
+    }
+
+    private IEnumerator LerpToPose(Transform objToMove, Transform destination, float duration)
+    {
+        Vector3 startPosition = objToMove.position;
+        Quaternion startRotation = objToMove.rotation;
+        Vector3 endPosition = destination.position;
+        Quaternion endRotation = destination.rotation;
+
+        float timeElapsed = 0f;
+
+        while (timeElapsed < duration)
+        {
+            lerping = true;
+            // Interpolate the position and rotation over time
+            objToMove.position = Vector3.Lerp(startPosition, endPosition, timeElapsed / duration);
+            objToMove.rotation = Quaternion.Lerp(startRotation, endRotation, timeElapsed / duration);
+
+            timeElapsed += Time.deltaTime;
+            yield return null; // Wait until the next frame
+        }
+
+        // Ensure the object ends exactly at the destination pose
+        objToMove.position = endPosition;
+        objToMove.rotation = endRotation;
+        lerping = false;
+    }
+
+
+    #endregion
+
+    #region Paceline
 
     private IEnumerator PacelineRoutine()
     {
@@ -105,6 +281,8 @@ public class SessionManager : MonoBehaviour
             }
         }
     }
+
+    #endregion
 
     #region Ramp Test
 

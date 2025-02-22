@@ -191,7 +191,7 @@ public class BicycleAI : MonoBehaviour
 
     // AI Type: All
 
-    private void UpdatePace(float speed)
+    public void UpdatePace(float speed)
     {
         if (navmeshAgent != null)
         {
