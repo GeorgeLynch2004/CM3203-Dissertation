@@ -128,9 +128,6 @@
 -define:BURST_PRESENT
 -define:CSHARP_7_OR_LATER
 -define:CSHARP_7_3_OR_NEWER
--r:"Assets/HeartRateMonitorPlugin/SampleProject/Assets/HoloToolkit/Utilities/Scripts/GLTF/Plugins/GLTFSerialization/GLTFSerialization.dll"
--r:"Assets/HeartRateMonitorPlugin/SampleProject/Assets/HoloToolkit/Utilities/Scripts/GLTF/Plugins/JsonNet/Newtonsoft.Json.dll"
--r:"Assets/HeartRateMonitorPlugin/SampleProject/Assets/Plugins/WSAUnityHRM.dll"
 -r:"C:/Program Files/Unity/Hub/Editor/2022.3.13f1/Editor/Data/Managed/UnityEditor.Graphs.dll"
 -r:"C:/Program Files/Unity/Hub/Editor/2022.3.13f1/Editor/Data/Managed/UnityEngine/UnityEditor.CoreModule.dll"
 -r:"C:/Program Files/Unity/Hub/Editor/2022.3.13f1/Editor/Data/Managed/UnityEngine/UnityEditor.DeviceSimulatorModule.dll"

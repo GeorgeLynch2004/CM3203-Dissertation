@@ -1,5 +1,5 @@
 sceneSetups:
-- path: Assets/HeartRateMonitorPlugin/SampleProject/Assets/Scenes/Windows.unity
+- path: Assets/Scenes/SampleScene.unity
   isLoaded: 1
   isActive: 1
   isSubScene: 0

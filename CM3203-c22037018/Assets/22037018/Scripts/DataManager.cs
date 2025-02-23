@@ -17,6 +17,9 @@ public class DataManager : MonoBehaviour
     [Header("Exercise Bike Script Reference")]
     [SerializeField] private FTMS_UI exerciseBikeScript;
 
+    [Header("Heartrate Monitor Script Reference")]
+    [SerializeField] private HeartrateScanner heartrateScript;
+
     [Header("Performance Metrics")]
     [SerializeField] public float currentPower; 
     [SerializeField] public float targetPower; 
@@ -62,7 +65,10 @@ public class DataManager : MonoBehaviour
             exerciseBikeScript.connect();
         }
 
-        // Heartrate Monitor
+        // Heartrate monitor.
+        heartrateScript = GameObject.Find("HeartrateMonitor").GetComponent<HeartrateScanner>();
+
+        
     }
 
     private void LogData()
@@ -94,5 +100,10 @@ public class DataManager : MonoBehaviour
 
         // update player pace
         player.UpdatePace(float.Parse(strings[1]));
+    }
+
+    public void ProcessDataFromHR(string info)
+    {
+        headsUpDisplay.UpdateText(headsUpDisplay.currentHeartrateData, "Heartrate: " + info);
     }
 }
