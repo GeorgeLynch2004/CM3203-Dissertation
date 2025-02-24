@@ -6,11 +6,12 @@ using UnityEngine.UI;
 public class FTMS_UI : MonoBehaviour
 {
     // Start is called before the first frame update
-    private bool connected = false;
+    public bool connected = false;
     public FTMS_IndoorBike connector;
     public Text info;
     public Text resistance_show;
     [SerializeField] private DataManager dataManager;
+
 
     public string device_name = "WattbikePT28004316";
     public string service_id = "{00001826-0000-1000-8000-00805f9b34fb}";
@@ -22,6 +23,9 @@ public class FTMS_UI : MonoBehaviour
     }
 
     public void connect() {
+
+
+
         if (device_name.Length > 0 && service_id.Length > 0 && read_characteristic.Length > 0 && write_characteristic.Length > 0)
         {
             StartCoroutine(connector.connect(device_name, service_id, read_characteristic, write_characteristic));
@@ -44,7 +48,11 @@ public class FTMS_UI : MonoBehaviour
         {
             connector.Update();
             info.text = connector.output;
-            dataManager.ProcessDataFromBike(info.text);
+            if (info.text != null)
+            {
+                dataManager.ProcessDataFromBike(info.text);
+            }
+            
         }
     }
     private void OnApplicationQuit()

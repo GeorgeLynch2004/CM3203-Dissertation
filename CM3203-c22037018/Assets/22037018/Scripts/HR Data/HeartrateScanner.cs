@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class HeartrateScanner : MonoBehaviour
@@ -14,7 +13,7 @@ public class HeartrateScanner : MonoBehaviour
     [SerializeField] private string selectedServiceId = "";
     [SerializeField] private string selectedCharacteristicId = "";
 
-    [SerializeField] private bool isConnected = false;
+    [SerializeField] public bool isConnected = false;
     [SerializeField] private bool isSubscribed = false;
 
     [SerializeField] private float heartRate = 0f;
@@ -22,14 +21,11 @@ public class HeartrateScanner : MonoBehaviour
 
     [SerializeField] private DataManager dataManager;
 
-    private void Start()
-    {
-        // Start scanning for devices and connect to the Polar H10 when found
-        StartCoroutine(ConnectToH10());
-    }
+
 
     public void connect()
     {
+
         StartCoroutine(ConnectToH10());
     }
 
@@ -67,7 +63,6 @@ public class HeartrateScanner : MonoBehaviour
 
     private IEnumerator ConnectToService()
     {
-        // add small delay before scanning to ensure device is ready
         yield return new WaitForSeconds(1f);
 
         // Scan for the heart rate service
@@ -80,11 +75,9 @@ public class HeartrateScanner : MonoBehaviour
             status = BleApi.PollService(out serviceRes, false);
             if (status == BleApi.ScanStatus.AVAILABLE)
             {
-                Debug.Log("Found Service UUID: " + serviceRes.uuid);
                 if (serviceRes.uuid.ToLower() == HEART_RATE_SERVICE_UUID.ToLower())
                 {
                     selectedServiceId = serviceRes.uuid;
-                    Debug.Log("Found Heart Rate Service: " + selectedServiceId);
                     break;
                 }
             }
@@ -110,7 +103,6 @@ public class HeartrateScanner : MonoBehaviour
                 if (characteristicRes.uuid.ToLower() == HEART_RATE_MEASUREMENT_CHARACTERISTIC_UUID.ToLower())
                 {
                     selectedCharacteristicId = characteristicRes.uuid;
-                    Debug.Log("Found Heart Rate Measurement Characteristic: " + selectedCharacteristicId);
                     break;
                 }
             }
@@ -126,13 +118,11 @@ public class HeartrateScanner : MonoBehaviour
         // Subscribe to the heart rate characteristic to start receiving data
         BleApi.SubscribeCharacteristic_Read(selectedDeviceId, selectedServiceId, selectedCharacteristicId, false);
         isSubscribed = true;
-
         Debug.Log("Subscribed to Heart Rate Characteristic.");
     }
 
     private void Update()
     {
-        // Poll for data from the heart rate characteristic
         if (isSubscribed)
         {
             BleApi.BLEData data = new BleApi.BLEData();
@@ -142,12 +132,7 @@ public class HeartrateScanner : MonoBehaviour
                 int flags = BitConverter.ToUInt16(data.buf, index);  // Read the flags (first 2 bytes)
                 index += 2;
 
-                //Debug.Log($"Flags: {flags:X4}"); // Log flags to check what they are
-                //Debug.Log($"Raw Data: {BitConverter.ToString(data.buf)}"); // Log raw data for inspection
-
                 int heartRateValue = 0;
-
-                // Check if heart rate value is 1 byte or 2 bytes based on flags
                 if ((flags & 0x01) != 0) // 1-byte heart rate value
                 {
                     heartRateValue = data.buf[index];
@@ -159,21 +144,15 @@ public class HeartrateScanner : MonoBehaviour
                     index += 2;
                 }
 
-                // Output the heart rate value to the debug log 
-                // By default the data is transmitted as rr intervals so apply formula to get bpm
-                heartRate = Mathf.Round(60000/heartRateValue);
+                // provided a heartrate is being displayed
+                if (heartRateValue > 0)
+                {
+                    heartRate = Mathf.Round(60000 / heartRateValue);
+                }
                 
                 heartRateOutput = "Heart Rate: " + heartRate.ToString() + " bpm";
                 dataManager.currentHeartRate = heartRate;
                 dataManager.ProcessDataFromHR(heartRate.ToString());
-            }
-
-            // Check for any errors
-            BleApi.ErrorMessage errorMsg = new BleApi.ErrorMessage();
-            BleApi.GetError(out errorMsg);
-            if (!string.IsNullOrEmpty(errorMsg.msg))
-            {
-                //Debug.LogError("Error: " + errorMsg.msg);
             }
         }
     }

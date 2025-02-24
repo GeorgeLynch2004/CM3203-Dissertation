@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using UnityEngine.Rendering;
+using System.Text.RegularExpressions;
 
 public class DataManager : MonoBehaviour
 {
@@ -33,6 +34,12 @@ public class DataManager : MonoBehaviour
     [Header("Heads Up Display (HUD)")]
     [SerializeField] private HUD headsUpDisplay;
 
+    // Bicycle physics values
+    float dragCoefficient = 0.88f; // Drag coefficient for a cyclist (varies by position)
+    float frontalArea = 0.5f; // Frontal area of the cyclist + bike in square meters
+    float rollingResistanceCoefficient = 0.004f; // Rolling resistance coefficient
+    float bikeMass = 75f; // Combined mass of cyclist and bike in kg
+
     // Start is called before the first frame update
     void Start()
     {
@@ -44,7 +51,7 @@ public class DataManager : MonoBehaviour
         writer.WriteLine("Time,CurrentPower,TargetPower,CurrentCadence,TargetCadence,CurrentSpeed,TargetSpeed,CurrentHeartRate,TargetHeartRate");
         writer.Flush();
 
-        EstablishDeviceConnections();
+
     }
 
     // Update is called once per frame
@@ -68,6 +75,13 @@ public class DataManager : MonoBehaviour
         // Heartrate monitor.
         heartrateScript = GameObject.Find("HeartrateMonitor").GetComponent<HeartrateScanner>();
 
+
+        if (heartrateScript != null)
+        {
+            heartrateScript.connect();
+        }
+            
+
         
     }
 
@@ -87,23 +101,86 @@ public class DataManager : MonoBehaviour
 
     public void ProcessDataFromBike(string info)
     {
+        if (info.Length == 0) return;
+
         string[] strings = info.Split(new char[] {',', ' '}, System.StringSplitOptions.RemoveEmptyEntries);
 
-        strings[1] = strings[1].Replace("RPM:", "");
-        strings[3] = strings[3].Replace("Power", "");
+        for (int i = 0; i < strings.Length; i++)
+        {
+            strings[i] = Regex.Replace(strings[i], @"[^\d.]", "");
+            if (i == 1)
+            {
+                headsUpDisplay.UpdateText(headsUpDisplay.currentSpeedData, "Speed: " + CalculateSpeed(float.Parse(strings[5]), dragCoefficient, frontalArea, rollingResistanceCoefficient, bikeMass) + "MPH");
+            }
+            if (i == 3) 
+            {
+                headsUpDisplay.UpdateText(headsUpDisplay.currentCadenceData, "Cadence: " + strings[i].Replace("\n", "") + "RPM");
+            }
+            if (i == 5)
+            {
+                headsUpDisplay.UpdateText(headsUpDisplay.currentPowerData, "Power: " + strings[i] + "W");
+            }
 
-        // Update HUD
-        headsUpDisplay.UpdateText(headsUpDisplay.currentSpeedData, "Speed: " + strings[1]);
-        headsUpDisplay.UpdateText(headsUpDisplay.currentCadenceData, "Cadence: " + strings[3]);
+            
+        }
 
- 
+        float rawPower = float.Parse(strings[5]);
 
         // update player pace
-        player.UpdatePace(float.Parse(strings[1]));
+        player.UpdatePace(CalculateSpeed(rawPower, dragCoefficient, frontalArea, rollingResistanceCoefficient, bikeMass));
     }
 
     public void ProcessDataFromHR(string info)
     {
-        headsUpDisplay.UpdateText(headsUpDisplay.currentHeartrateData, "Heartrate: " + info);
+        headsUpDisplay.UpdateText(headsUpDisplay.currentHeartrateData, "Heartrate: " + info + "BPM");
     }
+
+    private float CalculateSpeed(float powerOutput, float dragCoefficient, float frontalArea, float rollingResistanceCoefficient, float bikeMass)
+    {
+        // Constants
+        const float g = 9.81f;          // Gravitational acceleration (m/s²)
+        const float rho = 1.225f;       // Air density at sea level (kg/m³)
+        const float riderMass = 75.0f;  // Assumed rider mass (kg)
+        const float mpsToMph = 2.237f;  // Conversion factor from m/s to mph
+
+        // Total mass (bike + rider)
+        float totalMass = bikeMass + riderMass;
+
+        // Calculate rolling resistance (F_r = C_rr * m * g)
+        float rollingResistance = rollingResistanceCoefficient * totalMass * g;
+
+        // Solving for speed using the power equation:
+        // P = F * v, where F includes air drag and rolling resistance
+        // P = (0.5 * rho * Cd * A * v^3) + (Crr * m * g * v)
+
+        // This is a cubic equation that needs solving
+        // We'll use a simple iterative approach to find the speed
+
+        float speed = 0.0f;
+        float speedIncrement = 0.1f;
+        float calculatedPower = 0.0f;
+
+        while (calculatedPower < powerOutput)
+        {
+            speed += speedIncrement;
+
+            // Air resistance (F_a = 0.5 * rho * Cd * A * v^2)
+            float airResistance = 0.5f * rho * dragCoefficient * frontalArea * speed * speed;
+
+            // Total resistance force
+            float totalResistance = airResistance + rollingResistance;
+
+            // Power required to overcome resistance at this speed
+            calculatedPower = totalResistance * speed;
+
+            // Prevent infinite loop if power is too low
+            if (speed > 50.0f)  // Arbitrary maximum speed limit
+                break;
+        }
+
+        // Convert from m/s to mph before returning
+        return speed * mpsToMph;
+    }
+
+
 }
