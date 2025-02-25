@@ -11,6 +11,7 @@ public class FTMS_UI : MonoBehaviour
     public Text info;
     public Text resistance_show;
     [SerializeField] private DataManager dataManager;
+    [SerializeField] private RawImage colourIndicator;
 
 
     public string device_name = "WattbikePT28004316";
@@ -46,13 +47,19 @@ public class FTMS_UI : MonoBehaviour
     {
         if (connected)
         {
+            colourIndicator.color = Color.green;
+
             connector.Update();
             info.text = connector.output;
             if (info.text != null)
             {
                 dataManager.ProcessDataFromBike(info.text);
             }
-            
+
+        }
+        else
+        {
+            colourIndicator.color= Color.red;
         }
     }
     private void OnApplicationQuit()

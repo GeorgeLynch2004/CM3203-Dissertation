@@ -267,7 +267,7 @@ public class FTMS_IndoorBike
                     output += "ExpendedEnergy: " + expended_energy + "\n";
                     index += 2;
                 }
-
+                
                 //output += "Resistance: " + sended_resistance + "\n";
             }
 

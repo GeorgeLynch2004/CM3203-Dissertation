@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class HeartrateScanner : MonoBehaviour
 {
@@ -20,8 +22,9 @@ public class HeartrateScanner : MonoBehaviour
     [SerializeField] private string heartRateOutput = "";
 
     [SerializeField] private DataManager dataManager;
+    [SerializeField] private RawImage colourIndicator;
 
-
+    
 
     public void connect()
     {
@@ -119,12 +122,17 @@ public class HeartrateScanner : MonoBehaviour
         BleApi.SubscribeCharacteristic_Read(selectedDeviceId, selectedServiceId, selectedCharacteristicId, false);
         isSubscribed = true;
         Debug.Log("Subscribed to Heart Rate Characteristic.");
+
+        
     }
 
     private void Update()
     {
         if (isSubscribed)
         {
+            // make light in unity green
+            colourIndicator.color = Color.green;
+
             BleApi.BLEData data = new BleApi.BLEData();
             while (BleApi.PollData(out data, false))
             {
@@ -154,6 +162,10 @@ public class HeartrateScanner : MonoBehaviour
                 dataManager.currentHeartRate = heartRate;
                 dataManager.ProcessDataFromHR(heartRate.ToString());
             }
+        }
+        else
+        {
+            colourIndicator.color = Color.red;
         }
     }
 }

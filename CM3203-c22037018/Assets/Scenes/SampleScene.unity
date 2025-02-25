@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.3130029, g: 0.5501603, b: 0.8220557, a: 1}
+  m_IndirectSpecularColor: {r: 0.3135636, g: 0.5501241, b: 0.8218921, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2391,6 +2391,7 @@ MonoBehaviour:
   pacelineTargetPosition: {fileID: 0}
   selfPathDistance: 0
   targetsPathDistance: 0
+  desiredAcceleration: 0
   anticipationCollider: {fileID: 1599420480}
   bikeInfront: {fileID: 0}
   bikeBehind: {fileID: 0}
@@ -5564,6 +5565,7 @@ MonoBehaviour:
   heartRate: 0
   heartRateOutput: 
   dataManager: {fileID: 1025390898}
+  colourIndicator: {fileID: 628629138}
 --- !u!4 &439580149
 Transform:
   m_ObjectHideFlags: 0
@@ -11295,6 +11297,7 @@ MonoBehaviour:
   pacelineTargetPosition: {fileID: 0}
   selfPathDistance: 0
   targetsPathDistance: 0
+  desiredAcceleration: 0
   anticipationCollider: {fileID: 1019577260}
   bikeInfront: {fileID: 0}
   bikeBehind: {fileID: 0}
@@ -12531,6 +12534,7 @@ MonoBehaviour:
   pacelineTargetPosition: {fileID: 0}
   selfPathDistance: 0
   targetsPathDistance: 0
+  desiredAcceleration: 4
   anticipationCollider: {fileID: 747881152}
   bikeInfront: {fileID: 0}
   bikeBehind: {fileID: 0}
@@ -12600,6 +12604,7 @@ MonoBehaviour:
     m_Bits: 64
   currentLeanAngle: 0
   speedThreshold: 12
+  lerpTime: 0.5
 --- !u!1 &946268418
 GameObject:
   m_ObjectHideFlags: 0
@@ -12911,10 +12916,11 @@ MonoBehaviour:
   currentHeartrateData: {fileID: 260430032}
   currentCadenceData: {fileID: 1533991210}
   currentSpeedData: {fileID: 1704073440}
-  targetPowerData: {fileID: 1492965325}
-  targetHeartrateData: {fileID: 1865283550}
-  targetCadenceData: {fileID: 1297997238}
-  targetSpeedData: {fileID: 2038227333}
+  dataLoggingFlag: {fileID: 1492965325}
+  participantID: {fileID: 1865283550}
+  selectedScenarioMode: {fileID: 1297997238}
+  dateAndTime: {fileID: 2038227333}
+  messagePopUp: {fileID: 2103177508}
 --- !u!4 &991153809 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 314259139610439016, guid: 9a5f820ee9c46b64294ae756b459a681, type: 3}
@@ -13251,19 +13257,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 060e69c104ff24042b46dcaa0b0564c8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dataLoggingEnabled: 1
   fileName: performance_log
   player: {fileID: 942435043}
+  sessionManager: {fileID: 651377153}
   exerciseBikeScript: {fileID: 1663485189}
   heartrateScript: {fileID: 439580148}
   currentPower: 0
-  targetPower: 0
   currentCadence: 0
-  targetCadence: 0
   currentSpeed: 0
-  targetSpeed: 0
   currentHeartRate: 0
-  targetHeartRate: 0
+  dataLoggingFlag: 0
+  participantID: 0
+  scenarioMode: 0
+  messagePopUp: 
   headsUpDisplay: {fileID: 985771654}
 --- !u!4 &1025390899
 Transform:
@@ -14469,7 +14475,7 @@ GameObject:
   - component: {fileID: 1183995313}
   - component: {fileID: 1183995312}
   m_Layer: 5
-  m_Name: Target Data
+  m_Name: Title
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14514,9 +14520,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Target Data:
-
-'
+  m_text: 'Developer Info:'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -16391,7 +16395,7 @@ GameObject:
   - component: {fileID: 1297997239}
   - component: {fileID: 1297997238}
   m_Layer: 5
-  m_Name: Target Cadence
+  m_Name: Selected Scenario
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -16436,7 +16440,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Cadence:'
+  m_text: 'Scenario: None
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -19755,7 +19761,7 @@ GameObject:
   - component: {fileID: 1492965326}
   - component: {fileID: 1492965325}
   m_Layer: 5
-  m_Name: Target Power
+  m_Name: Data Logging Flag
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -19800,9 +19806,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Power:
-
-'
+  m_text: 'Data Logging: false'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -20977,6 +20981,7 @@ MonoBehaviour:
   info: {fileID: 159711436}
   resistance_show: {fileID: 341582848}
   dataManager: {fileID: 1025390898}
+  colourIndicator: {fileID: 877722623}
   device_name: WattbikePT28004316
   service_id: '{00001826-0000-1000-8000-00805f9b34fb}'
   read_characteristic: '{00002ad2-0000-1000-8000-00805f9b34fb}'
@@ -21341,7 +21346,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1694601398}
   m_Layer: 5
-  m_Name: Target Data
+  m_Name: Dev Info
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -23339,7 +23344,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 1.02e-43, y: NaN, z: 1.2637e-41, w: 0}
+  m_BoundingSphereOverride: {x: 9.1835e-41, y: 1.1681478e-37, z: 9.78048e-39, w: NaN}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
@@ -23970,6 +23975,7 @@ MonoBehaviour:
   pacelineTargetPosition: {fileID: 0}
   selfPathDistance: 0
   targetsPathDistance: 0
+  desiredAcceleration: 0
   anticipationCollider: {fileID: 673120241}
   bikeInfront: {fileID: 0}
   bikeBehind: {fileID: 0}
@@ -24360,7 +24366,7 @@ GameObject:
   - component: {fileID: 1865283551}
   - component: {fileID: 1865283550}
   m_Layer: 5
-  m_Name: Target Heartrate
+  m_Name: ParticipantID
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -24405,7 +24411,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Heartrate:'
+  m_text: 'Participant No: 0'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -26951,7 +26957,7 @@ GameObject:
   - component: {fileID: 2038227334}
   - component: {fileID: 2038227333}
   m_Layer: 5
-  m_Name: Target Speed
+  m_Name: Date & Time
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -26996,7 +27002,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Speed:'
+  m_text: 'Date/Time: '
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -27522,7 +27528,7 @@ GameObject:
   - component: {fileID: 2103177509}
   - component: {fileID: 2103177508}
   m_Layer: 5
-  m_Name: Interval Timer
+  m_Name: Message Pop Up
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -27545,7 +27551,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 250}
-  m_SizeDelta: {x: 1000, y: 50}
+  m_SizeDelta: {x: 500, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2103177508
 MonoBehaviour:
@@ -27567,9 +27573,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Interval Countdown:
-
-    00:00'
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -32565,6 +32569,7 @@ MonoBehaviour:
   pacelineTargetPosition: {fileID: 0}
   selfPathDistance: 0
   targetsPathDistance: 0
+  desiredAcceleration: 0
   anticipationCollider: {fileID: 751405047}
   bikeInfront: {fileID: 0}
   bikeBehind: {fileID: 0}

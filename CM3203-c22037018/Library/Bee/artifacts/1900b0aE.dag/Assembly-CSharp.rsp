@@ -459,6 +459,7 @@
 "Assets/22037018/Scripts/Bicycle/BicycleAI.cs"
 "Assets/22037018/Scripts/Bicycle/BikeDetectionCollider.cs"
 "Assets/22037018/Scripts/Bicycle/ChaseCollider.cs"
+"Assets/22037018/Scripts/Bicycle/SlopeRotation.cs"
 "Assets/22037018/Scripts/Bicycle/SmoothRotationOverride.cs"
 "Assets/22037018/Scripts/DataManager.cs"
 "Assets/22037018/Scripts/HR Data/HeartrateScanner.cs"

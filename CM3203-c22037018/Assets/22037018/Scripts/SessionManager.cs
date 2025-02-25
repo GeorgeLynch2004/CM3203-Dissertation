@@ -176,6 +176,11 @@ public class SessionManager : MonoBehaviour
         scenarioMode = ScenarioMode.Competitive;
     }
 
+    public ScenarioMode GetCurrentScenarioMode()
+    {
+        return scenarioMode;
+    }
+
     private void HandleScenarioModeChange()
     {
         if (scenarioMode != previousFrameScenarioMode)

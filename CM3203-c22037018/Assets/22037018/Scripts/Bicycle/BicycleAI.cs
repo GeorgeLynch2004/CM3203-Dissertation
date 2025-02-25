@@ -33,6 +33,7 @@ public class BicycleAI : MonoBehaviour
     [SerializeField] private Transform pacelineTargetPosition;
     [SerializeField] private float selfPathDistance;
     [SerializeField] private float targetsPathDistance;
+    [SerializeField] public float desiredAcceleration;
 
     // Collisions
     [Header("Collision Settings")]

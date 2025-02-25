@@ -11,8 +11,11 @@ public class SlopeRotation : MonoBehaviour
     [SerializeField] private LayerMask layerMask; // Add a LayerMask field to specify the "Bike Track" layer
     [SerializeField] private float currentLeanAngle;
     [SerializeField] private float speedThreshold = 12f; // Speed threshold to start leaning
+    [SerializeField] private float lerpTime = 0.5f; // Time it takes to lerp in and out
 
     private NavMeshAgent agent; // Reference to the NavMeshAgent
+    private float targetLeanAngle; // The target angle we want to reach
+    private float currentLerpTime = 0f; // Timer to keep track of lerping
 
     void Start()
     {
@@ -48,11 +51,23 @@ public class SlopeRotation : MonoBehaviour
                 // Calculate the rotation angle between the two hit points based on the horizontal difference and height difference
                 float angle = Mathf.Atan2(heightDifference, horizontalDifference.magnitude) * Mathf.Rad2Deg;
 
-                currentLeanAngle = angle;
-
-                // Apply the rotation to the cube
-                transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, -angle);
+                // Update the target lean angle
+                targetLeanAngle = angle;
             }
         }
+        else
+        {
+            // If the speed goes below the threshold, reset the targetLeanAngle to 0
+            targetLeanAngle = 0f;
+        }
+
+        // Smoothly interpolate to the target angle
+        if (Mathf.Abs(targetLeanAngle - currentLeanAngle) > 0.01f) // Check if a significant difference exists
+        {
+            currentLeanAngle = Mathf.LerpAngle(currentLeanAngle, targetLeanAngle, Time.deltaTime / lerpTime);
+        }
+
+        // Apply the rotation to the object
+        transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, -currentLeanAngle);
     }
 }

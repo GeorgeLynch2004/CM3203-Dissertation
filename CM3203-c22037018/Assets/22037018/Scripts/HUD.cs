@@ -6,16 +6,19 @@ using TMPro;
 public class HUD : MonoBehaviour
 {
     // Current Data
+    [Header("Current Data")]
     [SerializeField] public TextMeshProUGUI currentPowerData;
     [SerializeField] public TextMeshProUGUI currentHeartrateData;
     [SerializeField] public TextMeshProUGUI currentCadenceData;
     [SerializeField] public TextMeshProUGUI currentSpeedData;
 
-    // Target Data
-    [SerializeField] public TextMeshProUGUI targetPowerData;
-    [SerializeField] public TextMeshProUGUI targetHeartrateData;
-    [SerializeField] public TextMeshProUGUI targetCadenceData;
-    [SerializeField] public TextMeshProUGUI targetSpeedData;
+    // Developer Information
+    [Header("Developer Information")]
+    [SerializeField] public TextMeshProUGUI dataLoggingFlag;
+    [SerializeField] public TextMeshProUGUI participantID;
+    [SerializeField] public TextMeshProUGUI selectedScenarioMode;
+    [SerializeField] public TextMeshProUGUI dateAndTime;
+    [SerializeField] public TextMeshProUGUI messagePopUp;
 
     public void UpdateText(TextMeshProUGUI txt, string val)
     {
