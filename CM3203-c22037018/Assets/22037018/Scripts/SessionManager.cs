@@ -57,15 +57,10 @@ public class SessionManager : MonoBehaviour
         HandleScenarioModeChange();
     }
 
-    private void BeginSession()
+    public void BeginSession()
     {
         InitBikeObjects();
 
-        // Resistance Profile Logic
-        if (resistanceProfile == ResistanceProfile.Ramp)
-        {
-            StartCoroutine(RampTest());
-        }
         if (resistanceProfile != ResistanceProfile.Consistent)
         {
             // for if resistance is wanted to stay the same
@@ -289,39 +284,5 @@ public class SessionManager : MonoBehaviour
 
     #endregion
 
-    #region Ramp Test
 
-    private IEnumerator RampTest()
-    {
-        float rampTime = 0;
-
-        while (rampTime < rampDuration)
-        {
-            rampTime += Time.deltaTime;
-            yield return new WaitForSeconds(10);
-
-            foreach (GameObject ai in activeAI)
-            {
-                ai.GetComponent<UnityEngine.AI.NavMeshAgent>().speed = CalculateSpeed(0,0,0);
-            }
-        }
-    }
-
-    #endregion
-
-    #region Data Handling
-
-    public float CalculateSpeed(float cadence, float resistance, float power)
-    {
-        // Example formula: Speed estimation for a Wattbike (adjust as needed)
-        float speed = (cadence * 0.1f) + (resistance * 0.2f) + (power * 0.05f);
-        return speed;
-    }
-
-    public void IncreaseResistance(float resistance)
-    {
-        // method to increase resistance
-    }
-
-    #endregion
 }

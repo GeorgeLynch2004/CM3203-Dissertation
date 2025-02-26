@@ -7,10 +7,13 @@ using System.Text.RegularExpressions;
 using UnityEngine.AI;
 using System;
 using Unity.VisualScripting;
+using Unity.XR.CoreUtils.Datums;
+using System.Linq;
 
 public class DataManager : MonoBehaviour
 {
     private string fileDirectory;
+    private string directory;
     [SerializeField] private string fileName;
     private StreamWriter writer;
 
@@ -31,12 +34,14 @@ public class DataManager : MonoBehaviour
     [SerializeField] public float currentCadence; 
     [SerializeField] public float currentSpeed; 
     [SerializeField] public float currentHeartRate;
+    private List<float> lastMinutePower = new List<float>();
 
     [Header("Study Information")]
     [SerializeField] public bool dataLoggingFlag;
     private bool dataCoroutineRunning;
     private bool listeningForPowerOutput;
     [SerializeField] public int participantID;
+    [SerializeField] public float participantWeight;
     [SerializeField] public ScenarioMode scenarioMode;
     [SerializeField] public DateTime dateAndTime;
     [SerializeField] private string messagePopUp;
@@ -67,12 +72,7 @@ public class DataManager : MonoBehaviour
             Directory.CreateDirectory(fileDirectory);
         }
 
-        string directory = Path.Combine(fileDirectory, fileName += "_" + scenarioMode.ToString() + "_" + participantID.ToString() + ".csv");
-
-        writer = new StreamWriter(directory, false);
-
-        writer.WriteLine("Current Time,CurrentPower,CurrentCadence,CurrentSpeed,CurrentHeartRate");
-        writer.Flush();
+        
 
         StartCoroutine(ListenForPowerOutputStart());
     }
@@ -130,9 +130,9 @@ public class DataManager : MonoBehaviour
         {
             DateTime time = DateTime.Now;
             string logEntry = string.Format("{0},{1},{2},{3},{4}",
-                time, currentPower, currentCadence, currentSpeed, currentHeartRate);
+                time.ToString("dd-MM-yyyy HH:mm:ss"), currentPower, currentCadence, (float)Math.Round(currentSpeed,2), currentHeartRate);
 
-
+            
             writer.WriteLine(logEntry);
             Debug.Log($"Written: {logEntry}");
 
@@ -150,10 +150,26 @@ public class DataManager : MonoBehaviour
         {
             if (currentPower > 0)
             {
+                sessionManager.BeginSession();
+
                 messagePopUp = "Beginning to log data in 10 seconds.";
+
+                // set up the writer now the scenario mode has been determined
+                string logFileName = $"{fileName}_{scenarioMode}_{participantID}.csv";
+                directory = Path.Combine(fileDirectory, logFileName);
+
+                writer = new StreamWriter(directory, false);
+
+                writer.WriteLine($"ParticipantID,ScenarioMode,Date & Time");
+                writer.WriteLine($"{participantID},{scenarioMode},{dateAndTime.ToString("dd-MM-yyyy")}");
+                writer.WriteLine("");
+                writer.WriteLine("Current Time,CurrentPower,CurrentCadence,CurrentSpeed,CurrentHeartRate");
+                writer.Flush();
+
                 yield return new WaitForSeconds(10f);
                 messagePopUp = "";
                 dataLoggingFlag = true;
+                
                 yield return null;
             }
 
@@ -188,6 +204,10 @@ public class DataManager : MonoBehaviour
                     dataLoggingFlag = false;
                     messagePopUp = "No power detected. Stopping data logging.";
                     writer.Close();
+
+                    CalculateFileFooter();
+
+               
                     Debug.Log($"File: {fileName} saved successfully.");
 
 
@@ -219,10 +239,134 @@ public class DataManager : MonoBehaviour
         messagePopUp = "";
     }
 
+    private void CalculateFileFooter()
+    {
+        string[] lines = File.ReadAllLines(directory);
+        List<PerformanceData> data = new List<PerformanceData>();
 
-    private void OnApplicationQuit() {
-        
+        float totalPower = 0f;
+        float totalCadence = 0f;
+        float totalSpeed = 0f;
+        float totalHeartRate = 0f;
+
+        float maxPower = 0f;
+        float maxCadence = 0f;
+        float maxSpeed = 0f;
+        float maxHeartRate = 0f;
+        float totalTime = 0f;
+
+        for (int i = 1; i < lines.Length; i++)
+        {
+            string line = lines[i];
+            string[] values = line.Split(',');
+
+
+
+            if (values.Length >= 5)
+            {
+                float power = 0f, cadence = 0f, speed = 0f, heartRate = 0f;
+
+                // Try parsing values and handle invalid data gracefully
+                if (float.TryParse(values[1], out power) && float.TryParse(values[2], out cadence) &&
+                    float.TryParse(values[3], out speed) && float.TryParse(values[4], out heartRate))
+                {
+                    data.Add(new PerformanceData(power, cadence, speed, heartRate));
+
+                    // average
+                    totalPower += power;
+                    totalCadence += cadence;
+                    totalSpeed += speed;
+                    totalHeartRate += heartRate;
+
+                    // max
+                    maxPower = Mathf.Max(maxPower, power);
+                    maxHeartRate = Mathf.Max(maxHeartRate, heartRate);
+                    maxSpeed = Mathf.Max(maxSpeed, speed);
+                    maxCadence = Mathf.Max(maxCadence, cadence);
+
+                    // increment time
+                    totalTime += 1f;
+
+                    if (lastMinutePower.Count == 60)
+                    {
+                        // Remove the oldest power value (first in the list)
+                        lastMinutePower.RemoveAt(0);
+                    }
+
+                    // Add the current power value to the list
+                    lastMinutePower.Add(power);
+                }
+                else
+                {
+                    // Log or handle the invalid data if needed (skip or continue)
+                    Debug.LogWarning($"Invalid data at line {i}: {line}");
+                }
+            }
+        }
+
+        // calculate averages
+        int dataCount = data.Count;
+        if (dataCount > 0)
+        {
+            float avgPower = (float)Math.Round(totalPower / dataCount, 2);
+            float avgCadence = (float)Math.Round(totalCadence / dataCount, 2);
+            float avgSpeed = (float)Math.Round(totalSpeed / dataCount, 2);
+            float avgHeartRate = (float)Math.Round(totalHeartRate / dataCount, 2);
+
+            // calculate performance metrics
+            float powerToWeightRatio = 0;
+            if (participantWeight > 0)
+            {
+                powerToWeightRatio = avgPower / participantWeight;
+            }
+
+            float ftp = 0;
+
+            if (lastMinutePower.Count == 60)
+            {
+                float lastMinuteAveragePower = lastMinutePower.Average();
+                ftp = (float)Math.Round(lastMinuteAveragePower * 0.75f, 2);
+            }
+
+            float heartRateRecovery = (float)Math.Round(maxHeartRate - avgHeartRate,2);
+            float efficiencyFactor = (float)Math.Round(avgPower / avgHeartRate,2);
+            float peakPowerOutput = maxPower;
+            float maximumHeartrate = maxHeartRate;
+            float totalWorkDone = totalPower * totalTime;
+
+            using (StreamWriter writer = new StreamWriter(directory, true))
+            {
+                writer.WriteLine($"");
+                writer.WriteLine($"Averages:");
+                writer.WriteLine($"Average Power,{avgPower}");
+                writer.WriteLine($"Average Cadence,{avgCadence}");
+                writer.WriteLine($"Average Speed,{avgSpeed}");
+                writer.WriteLine($"Average Heart Rate,{avgHeartRate}");
+                if (powerToWeightRatio > 0)
+                {
+                    writer.WriteLine($"Average Power to Weight Ratio (P/W),{powerToWeightRatio}");
+                }
+                else
+                {
+                    writer.WriteLine($"Average Power to Weight Ratio (P/W),N/A");
+                }
+                
+                writer.WriteLine($"");
+                writer.WriteLine($"Performance Metrics:");
+                writer.WriteLine($"Functional Threshold Power (FTP),{ftp}");
+                writer.WriteLine($"Heart Rate Recovery (HRR),{heartRateRecovery}");
+                writer.WriteLine($"Efficiency Factor (EF),{efficiencyFactor}");
+                writer.WriteLine($"Peak Power Output (PPO),{peakPowerOutput}");
+                writer.WriteLine($"Maximum Heart Rate,{maximumHeartrate}");
+                writer.WriteLine($"Total Work Done,{totalWorkDone}");
+            }
+        }
+        else
+        {
+            Debug.LogError("No valid data to process.");
+        }
     }
+
 
     public void ProcessDataFromBike(string info)
     {
@@ -327,7 +471,7 @@ public class DataManager : MonoBehaviour
         }
 
         // Convert from m/s to mph before returning
-        return speed * mpsToMph;
+        return (float)Math.Round(speed * mpsToMph,1);
     }
 
     private void UpdateHUD()
@@ -365,4 +509,20 @@ public class DataManager : MonoBehaviour
         }
     }
 
+}
+
+public class PerformanceData
+{
+    public float power;
+    public float cadence;
+    public float speed;
+    public float heartRate;
+
+    public PerformanceData(float power, float cadence, float speed, float heartRate)
+    {
+        this.power = power;
+        this.cadence = cadence;
+        this.speed = speed;
+        this.heartRate = heartRate;
+    }
 }
