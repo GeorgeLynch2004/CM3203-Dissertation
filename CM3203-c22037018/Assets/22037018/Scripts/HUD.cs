@@ -11,6 +11,7 @@ public class HUD : MonoBehaviour
     [SerializeField] public TextMeshProUGUI currentHeartrateData;
     [SerializeField] public TextMeshProUGUI currentCadenceData;
     [SerializeField] public TextMeshProUGUI currentSpeedData;
+    [SerializeField] public TextMeshProUGUI currentDurationData;
 
     // Developer Information
     [Header("Developer Information")]

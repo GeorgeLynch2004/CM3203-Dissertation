@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.AI;
+using System.Linq;
 
 public enum AIType
 {
@@ -46,6 +47,8 @@ public class BicycleAI : MonoBehaviour
     [SerializeField] private GameObject playerObject;
     [SerializeField] private Transform bodyParent;
 
+    private SessionManager sessionManager;
+
     // Overtake Coroutine
     private Coroutine overtakeCoroutine;
     public Transform raycastOrigin;
@@ -64,27 +67,33 @@ public class BicycleAI : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        playerObject = GameObject.FindWithTag("Player");
+        playerObject = GameObject.FindGameObjectsWithTag("AI")
+                           .FirstOrDefault(obj => obj.GetComponent<BicycleAI>().aiType == AIType.Player);
         navmeshAgent = GetComponent<NavMeshAgent>();
+        sessionManager = GameObject.Find("SessionManager").GetComponent<SessionManager>();
     }
 
     private void Update() 
     {
-        if (aiType == AIType.Teammate)
+        if (sessionManager.GetCurrentScenarioMode() == ScenarioMode.Baseline)
+        {
+            TakePull(MapTargetPosition);
+        }
+        if (sessionManager.GetCurrentScenarioMode() == ScenarioMode.Cooperative)
         {
             if (aiState == AIState.Pulling)
             {
-                TakePull(MapTargetPosition);
+                if (MapTargetPosition != null)
+                    TakePull(MapTargetPosition);
             }
             else if (aiState == AIState.Drafting)
             {
-                DraftTeammate(pacelineTargetPosition);
+                if (pacelineTargetPosition != null)
+                    DraftTeammate(pacelineTargetPosition);
             }
-        }   
-        if (aiType == AIType.Player)
-        {
-            TakePull(MapTargetPosition);
-        } 
+        }
+         
+        
     }
 
 
@@ -109,18 +118,29 @@ public class BicycleAI : MonoBehaviour
         selfPathDistance = GetPathDistance(navmeshAgent, transform.position);
         targetsPathDistance = GetPathDistance(navmeshAgent, pacelineTargetPosition.position);
 
-        if (targetsPathDistance > 6f)
+        if (aiType == AIType.Teammate)
         {
-            UpdatePace(pacelineTargetPosition.GetComponent<NavMeshAgent>().speed + 2);
+            if (targetsPathDistance > 6f)
+            {
+                UpdatePace(pacelineTargetPosition.GetComponent<NavMeshAgent>().speed + 2);
+            }
+            else if (targetsPathDistance < 4f)
+            {
+                UpdatePace(pacelineTargetPosition.GetComponent<NavMeshAgent>().speed - 2);
+            }
+            else
+            {
+                UpdatePace(pacelineTargetPosition.GetComponent<NavMeshAgent>().speed);
+            }
         }
-        else if (targetsPathDistance < 4f)
+        else if (aiType == AIType.Player)
         {
-            UpdatePace(pacelineTargetPosition.GetComponent<NavMeshAgent>().speed - 2);
+            if (targetsPathDistance < 4f)
+            {
+                UpdatePace(navmeshAgent.speed - 2);
+            }
         }
-        else
-        {
-            UpdatePace(pacelineTargetPosition.GetComponent<NavMeshAgent>().speed);
-        }
+        
     }
 
     public void PeelOffPaceLine()
@@ -578,6 +598,12 @@ public class BicycleAI : MonoBehaviour
     {
         aiState = state;
     }
+
+    public AIState GetAIState(AIState state)
+    {
+        return aiState;
+    }
+
 
     #endregion
 }

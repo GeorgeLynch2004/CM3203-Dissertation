@@ -85,8 +85,8 @@ public class SessionManager : MonoBehaviour
     {
         activeAI = GameObject.FindGameObjectsWithTag("AI")
             .Where(ai =>
-                (scenarioMode == ScenarioMode.Cooperative && ai.GetComponent<BicycleAI>().GetAIType() == AIType.Teammate) ||
-                (scenarioMode == ScenarioMode.Competitive && ai.GetComponent<BicycleAI>().GetAIType() == AIType.Competitor))
+                (scenarioMode == ScenarioMode.Cooperative && (ai.GetComponent<BicycleAI>().GetAIType() == AIType.Teammate || ai.GetComponent<BicycleAI>().GetAIType() == AIType.Player)) ||
+                (scenarioMode == ScenarioMode.Competitive && (ai.GetComponent<BicycleAI>().GetAIType() == AIType.Competitor || ai.GetComponent<BicycleAI>().GetAIType() == AIType.Player)))
             .OrderBy(ai => Vector3.Distance(ai.transform.position, Vector3.zero))
             .ToList();
 

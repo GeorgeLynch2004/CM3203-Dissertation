@@ -34,6 +34,7 @@ public class DataManager : MonoBehaviour
     [SerializeField] public float currentCadence; 
     [SerializeField] public float currentSpeed; 
     [SerializeField] public float currentHeartRate;
+    [SerializeField] public float currentDurationData;
     private List<float> lastMinutePower = new List<float>();
 
     [Header("Study Information")]
@@ -63,6 +64,7 @@ public class DataManager : MonoBehaviour
         dataCoroutineRunning = false;
         listeningForPowerOutput = false;
         dataLoggingFlag = false;
+        currentDurationData = 0;
         sessionManager = GameObject.Find("SessionManager").GetComponent<SessionManager>();
 
         fileDirectory = Path.Combine(Application.dataPath, "Performance Logs");
@@ -129,6 +131,7 @@ public class DataManager : MonoBehaviour
         while (dataLoggingFlag)
         {
             DateTime time = DateTime.Now;
+            currentDurationData++;
             string logEntry = string.Format("{0},{1},{2},{3},{4}",
                 time.ToString("dd-MM-yyyy HH:mm:ss"), currentPower, currentCadence, (float)Math.Round(currentSpeed,2), currentHeartRate);
 
@@ -179,6 +182,7 @@ public class DataManager : MonoBehaviour
 
         listeningForPowerOutput = false; // Stop listening once logging starts
     }
+
 
     private IEnumerator ListenForPowerOutputEnd()
     {
@@ -479,16 +483,19 @@ public class DataManager : MonoBehaviour
         if (headsUpDisplay != null)
         {
             if (headsUpDisplay.currentCadenceData != null)
-                headsUpDisplay.UpdateText(headsUpDisplay.currentCadenceData, "Cadence: " + Mathf.Round(currentCadence).ToString() + "RPM");
+                headsUpDisplay.UpdateText(headsUpDisplay.currentCadenceData, "Cadence (RPM): " + Mathf.Round(currentCadence).ToString());
 
             if (headsUpDisplay.currentSpeedData != null)
-                headsUpDisplay.UpdateText(headsUpDisplay.currentSpeedData, "Speed: " + Mathf.Round(currentSpeed).ToString() + "MPH");
+                headsUpDisplay.UpdateText(headsUpDisplay.currentSpeedData, "Speed (MPH): " + Mathf.Round(currentSpeed).ToString());
 
             if (headsUpDisplay.currentPowerData != null)
-                headsUpDisplay.UpdateText(headsUpDisplay.currentPowerData, "Power: " + Mathf.Round(currentPower).ToString() + "W");
+                headsUpDisplay.UpdateText(headsUpDisplay.currentPowerData, "Power (W): " + Mathf.Round(currentPower).ToString());
 
             if (headsUpDisplay.currentHeartrateData != null)
-                headsUpDisplay.UpdateText(headsUpDisplay.currentHeartrateData, "Heartrate: " + Mathf.Round(currentHeartRate).ToString() + "BPM");
+                headsUpDisplay.UpdateText(headsUpDisplay.currentHeartrateData, "Heartrate (BPM): " + Mathf.Round(currentHeartRate).ToString());
+
+            if (headsUpDisplay.currentDurationData != null)
+                headsUpDisplay.UpdateText(headsUpDisplay.currentDurationData, "Duration (S): " + Math.Round(currentDurationData,2).ToString());
 
             if (headsUpDisplay.dataLoggingFlag != null)
                 headsUpDisplay.UpdateText(headsUpDisplay.dataLoggingFlag, "Data Logging: " + dataLoggingFlag.ToString());
