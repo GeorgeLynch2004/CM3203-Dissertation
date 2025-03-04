@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.AI;
 using System.Linq;
+using Unity.VisualScripting;
 
 public enum AIType
 {
@@ -26,6 +27,8 @@ public class BicycleAI : MonoBehaviour
     [SerializeField] private AIType aiType;
     [SerializeField] private AIState aiState;
 
+    // AI Hardcoded Performance Profile
+    private Dictionary<string, List<float>> profiles;
 
     // Navmesh
     [Header("Navmesh Settings")]
@@ -75,10 +78,12 @@ public class BicycleAI : MonoBehaviour
 
     private void Update() 
     {
+        // Baseline Game Loop
         if (sessionManager.GetCurrentScenarioMode() == ScenarioMode.Baseline)
         {
             TakePull(MapTargetPosition);
         }
+        // Cooperative Game Loop
         if (sessionManager.GetCurrentScenarioMode() == ScenarioMode.Cooperative)
         {
             if (aiState == AIState.Pulling)
@@ -92,6 +97,22 @@ public class BicycleAI : MonoBehaviour
                     DraftTeammate(pacelineTargetPosition);
             }
         }
+        // Competitive Game Loop
+        if (sessionManager.GetCurrentScenarioMode() == ScenarioMode.Competitive)
+        {
+            // Generate performance profiles based on users previous performance in baseline and cooperative scenario.
+            if (profiles == null)
+            {
+                profiles = LoadAIPerformanceProfiles();
+            }
+
+            // Permanently have the AI trained to the target on the map not an opponent as the goal is the same for all bikes: getting into first.
+            if (MapTargetPosition != null)
+            {
+                TakePull(MapTargetPosition);
+            }
+        }
+
          
         
     }
@@ -99,10 +120,24 @@ public class BicycleAI : MonoBehaviour
 
 
     // AI Type: Player
-    
 
-    // AI Type: Competitor
- 
+
+    #region AI Type: Competitor
+
+    // A method designed to fetch a list of wattage values for each second of the workout tailored to the athletes performance in the previous two scenarios.
+    private Dictionary<string, List<float>> LoadAIPerformanceProfiles()
+    { 
+        DataManager dataManager = GameObject.FindAnyObjectByType<DataManager>();
+        
+        if (dataManager != null)
+        {
+            return dataManager.GenerateWorkoutProfiles(dataManager.participantID, dataManager.fileDirectory);
+        }
+        return null;
+    }
+
+    #endregion
+
 
     #region AI Type: Teammate
 

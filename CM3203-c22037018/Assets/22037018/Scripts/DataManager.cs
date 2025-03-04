@@ -12,7 +12,7 @@ using System.Linq;
 
 public class DataManager : MonoBehaviour
 {
-    private string fileDirectory;
+    public string fileDirectory;
     private string directory;
     [SerializeField] private string fileName;
     private StreamWriter writer;
@@ -73,8 +73,6 @@ public class DataManager : MonoBehaviour
         {
             Directory.CreateDirectory(fileDirectory);
         }
-
-        
 
         StartCoroutine(ListenForPowerOutputStart());
     }
@@ -183,7 +181,6 @@ public class DataManager : MonoBehaviour
         listeningForPowerOutput = false; // Stop listening once logging starts
     }
 
-
     private IEnumerator ListenForPowerOutputEnd()
     {
         // Track the time elapsed since the last power output was detected
@@ -246,6 +243,21 @@ public class DataManager : MonoBehaviour
     private void CalculateFileFooter()
     {
         string[] lines = File.ReadAllLines(directory);
+
+        // remove last 5 seconds of data as it is empty garbage
+        if (lines.Length > 5)
+        {
+            lines = lines.SkipLast(5).ToArray();
+
+            // Overwrite the original file with the modified lines
+            File.WriteAllLines(directory, lines);
+        }
+        else
+        {
+            // If there are fewer than or exactly 5 lines, clear the file
+            File.WriteAllText(directory, string.Empty);
+        }
+
         List<PerformanceData> data = new List<PerformanceData>();
 
         float totalPower = 0f;
@@ -270,7 +282,7 @@ public class DataManager : MonoBehaviour
             {
                 float power = 0f, cadence = 0f, speed = 0f, heartRate = 0f;
 
-                // Try parsing values and handle invalid data gracefully
+                // Try parsing values and handle invalid data
                 if (float.TryParse(values[1], out power) && float.TryParse(values[2], out cadence) &&
                     float.TryParse(values[3], out speed) && float.TryParse(values[4], out heartRate))
                 {
@@ -293,7 +305,7 @@ public class DataManager : MonoBehaviour
 
                     if (lastMinutePower.Count == 60)
                     {
-                        // Remove the oldest power value (first in the list)
+                        // Remove the oldest power value
                         lastMinutePower.RemoveAt(0);
                     }
 
@@ -370,7 +382,6 @@ public class DataManager : MonoBehaviour
             Debug.LogError("No valid data to process.");
         }
     }
-
 
     public void ProcessDataFromBike(string info)
     {
@@ -514,6 +525,152 @@ public class DataManager : MonoBehaviour
                 headsUpDisplay.UpdateText(headsUpDisplay.messagePopUp, messagePopUp);
             }
         }
+    }
+
+    public Dictionary<string, List<float>> GenerateWorkoutProfiles(int id, string performance_log_directory)
+    {
+        Dictionary<string, List<float>> dict = new Dictionary<string, List<float>>();
+
+        if (Directory.Exists(performance_log_directory))
+        {
+            string[] files = Directory.GetFiles(performance_log_directory);
+            string[] participantIDFiles = files
+    .Where(file => Path.GetFileName(file).Contains(id.ToString()) && !file.EndsWith(".meta"))
+    .ToArray();
+
+
+            if (participantIDFiles.Length > 0)
+            {
+                List<List<float>> allFilePowerData = new List<List<float>>();
+                List<List<float>> allFileHeartrateData = new List<List<float>>();
+
+                foreach (var file in participantIDFiles)
+                {
+                    Debug.Log($"File Found for Participant ID ({id}): {file.ToString()}");
+
+                    // Get Power Data from file
+                    List<float> powerData = GetColumnData(file, 1);
+                    // Get Heartrate Data from file
+                    List<float> heartrateData = GetColumnData(file,4);
+
+                    // add them to the greater arrays
+                    allFilePowerData.Add(powerData);
+                    allFileHeartrateData.Add(heartrateData);
+                }
+
+                // FOR DEBUGGING
+                Debug.Log(allFilePowerData.ToString());
+                Debug.Log(allFileHeartrateData.ToString());
+
+                // Calculate averages across all file data
+                List<float> averageHistoricalPowerProfile = CalculateListAverage(allFilePowerData);
+                List<float> averageHistoricalHeartrateProfile = CalculateListAverage(allFileHeartrateData);
+
+                // FOR DEBUGGING
+                Debug.Log(averageHistoricalPowerProfile.ToString());
+                Debug.Log(averageHistoricalHeartrateProfile.ToString());
+
+                dict = new Dictionary<string, List<float>>(){
+                    { "Power", averageHistoricalPowerProfile },
+                    { "Heartrate", averageHistoricalHeartrateProfile }
+                };
+            }
+            else
+            {
+                Debug.LogError("There were no files found for that participant ID.");
+            }
+        }
+        else
+        {
+            Debug.LogError("Directory Inputted does not exist.");
+        }
+
+        return dict;
+    }
+
+    private List<float> CalculateListAverage(List<List<float>> data)
+    {
+        // Determine the maximum list length
+        int maxListLength = 0;
+        foreach (var list in data)
+        {
+            if (list.Count > maxListLength)
+            {
+                maxListLength = list.Count;
+            }
+        }
+
+        List<float> averages = new List<float>();
+
+        // Iterate over each index in the lists
+        for (int i = 0; i < maxListLength; i++)
+        {
+            List<float> valuesAtIndex = new List<float>();
+
+            // Collect the nth element from each list if it exists
+            foreach (var list in data)
+            {
+                if (i < list.Count)
+                {
+                    valuesAtIndex.Add(list[i]);
+                }
+            }
+
+            // If we have multiple values, calculate the average
+            if (valuesAtIndex.Count > 0)
+            {
+                float sum = 0f;
+                foreach (var value in valuesAtIndex)
+                {
+                    sum += value;
+                }
+
+                averages.Add(sum / valuesAtIndex.Count);
+            }
+        }
+
+        return averages;
+    }
+
+    List<float> GetColumnData(string filePath, int columnIndex)
+    {
+        List<float> columnData = new List<float>();
+
+        // Check if the file exists
+        if (File.Exists(filePath))
+        {
+            // Read all lines from the file
+            string[] lines = File.ReadAllLines(filePath);
+
+            foreach (var line in lines)
+            {
+                // Split the line into columns (assuming commas as separators)
+                string[] columns = line.Split(',');
+
+                // Ensure the column index is within the bounds of the current row
+                if (columnIndex < columns.Length)
+                {
+                    // If the value in the column is empty, stop processing
+                    if (string.IsNullOrWhiteSpace(columns[columnIndex]))
+                    {
+                        break; // Stop reading further rows
+                    }
+
+                    // Try parsing the value in the column
+                    float val = 0;
+                    if (float.TryParse(columns[columnIndex], out val))
+                    {
+                        columnData.Add(val);
+                    }
+                }
+            }
+        }
+        else
+        {
+            Debug.LogError("CSV file not found at path: " + filePath);
+        }
+
+        return columnData;
     }
 
 }
