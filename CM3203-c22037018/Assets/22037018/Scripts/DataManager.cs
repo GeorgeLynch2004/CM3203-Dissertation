@@ -135,7 +135,7 @@ public class DataManager : MonoBehaviour
 
             
             writer.WriteLine(logEntry);
-            Debug.Log($"Written: {logEntry}");
+            //Debug.Log($"Written: {logEntry}");
 
             yield return new WaitForSeconds(1f);
         }
@@ -442,7 +442,7 @@ public class DataManager : MonoBehaviour
         currentHeartRate = float.Parse(info);
     }
 
-    private float CalculateSpeed(float powerOutput, float dragCoefficient, float frontalArea, float rollingResistanceCoefficient, float bikeMass)
+    public float CalculateSpeed(float powerOutput, float dragCoefficient, float frontalArea, float rollingResistanceCoefficient, float bikeMass)
     {
         // Constants
         const float g = 9.81f;          // Gravitational acceleration (m/s²)

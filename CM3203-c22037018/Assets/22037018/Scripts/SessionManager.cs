@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Unity.Mathematics;
 using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.XR;
@@ -41,15 +43,22 @@ public class SessionManager : MonoBehaviour
     [SerializeField] private float pullTime; // Time each AI spends at the front
     private Coroutine pacelineCoroutine;
 
+    [Header("Race Settings")]
+    [SerializeField] private List<float> aiPerformanceVariations;
+    private Coroutine raceCoroutine;
+
     [Header("Ramp Test Settings")]
     [SerializeField] private float warmupDuration;
     [SerializeField] private float rampDuration = 60; // 1 minute
     [SerializeField] private float rampIncrement = 0.1f; // 10% every 10 seconds
 
+    private DataManager dataManager;
+
     private void Start()
     {
         DontDestroyOnLoad(gameObject);
         lerping = false;
+        dataManager = GameObject.FindAnyObjectByType<DataManager>();
     }
 
     private void Update()
@@ -77,7 +86,7 @@ public class SessionManager : MonoBehaviour
         }
         if (scenarioMode == ScenarioMode.Competitive && activeAI.Count > 1)
         {
-            // competitive logic here
+            raceCoroutine = StartCoroutine(RaceCoroutine(aiPerformanceVariations, dataManager.GenerateWorkoutProfiles(dataManager.participantID, Path.Combine(Application.dataPath, "Performance Logs"))));
         }
     }
 
@@ -284,5 +293,84 @@ public class SessionManager : MonoBehaviour
 
     #endregion
 
+    #region Race
+    
+    // this method
+    private IEnumerator RaceCoroutine(List<float> performanceVariations, Dictionary<string, List<float>> performanceProfiles)
+    {
+        int second = 0;
 
+        List<BicycleAI> enemies = FindObjectsOfType<BicycleAI>()
+        .Where(ai => ai.GetAIType() == AIType.Competitor)
+        .ToList();
+
+
+        Debug.Log(performanceVariations.Count);
+        Debug.Log(enemies.Count);
+
+        if  (performanceVariations.Count != enemies.Count)
+        {
+            Debug.LogError("Incorrect performance variations quantity.");
+            yield return null;
+        }
+        else if (performanceProfiles == null)
+        {
+            Debug.LogError("Failed to load performance profiles.");
+            yield return null;
+        }
+        else
+        {
+            List<float> powerData = performanceProfiles["Power"];
+            List<float> heartrateData = performanceProfiles["Heartrate"];
+
+            List<float> gracePeriod = new List<float> { 100f, 100f, 100f, 100f, 100f };
+            powerData.InsertRange(0, gracePeriod);
+
+            while (second < powerData.Count) 
+            {
+                float power = powerData[second];
+                float heartrate = heartrateData[second];
+
+                for (int i = 0; i < enemies.Count; i++)
+                {
+                    float adjustedPower = power * (1 + performanceVariations[i] / 100f);
+
+                    if (heartrate > 0)
+                    {
+                        // calculate adjustments to be made based on hr data.
+                        float heartrateDifference = dataManager.currentHeartRate - heartrate;
+                        float percentageDifference = heartrateDifference / heartrate * 100f;
+
+                        if (heartrateDifference > 0)
+                        {
+                            adjustedPower -= adjustedPower * (percentageDifference / 100f);
+                        }
+                        else if (heartrateDifference < 0)
+                        {
+                            adjustedPower += adjustedPower * (Mathf.Abs(percentageDifference) / 100f);
+                        }
+                    }
+                    
+
+                    float speed = dataManager.CalculateSpeed(adjustedPower, 0.88f, 0.5f, 0.004f, 75f);
+
+                    Debug.Log(speed);
+
+                    // if the speed calculated is 0 that will cause the ai to grind to a half which we dont want
+                    if (speed > 0)
+                    {
+                        enemies[i].UpdatePace(speed);
+                    }
+                    
+                }
+
+                second++;
+                yield return new WaitForSeconds(1f);
+            }
+        }
+
+        
+    }
+
+    #endregion
 }

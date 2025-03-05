@@ -100,17 +100,14 @@ public class BicycleAI : MonoBehaviour
         // Competitive Game Loop
         if (sessionManager.GetCurrentScenarioMode() == ScenarioMode.Competitive)
         {
-            // Generate performance profiles based on users previous performance in baseline and cooperative scenario.
-            if (profiles == null)
-            {
-                profiles = LoadAIPerformanceProfiles();
-            }
-
             // Permanently have the AI trained to the target on the map not an opponent as the goal is the same for all bikes: getting into first.
             if (MapTargetPosition != null)
             {
                 TakePull(MapTargetPosition);
             }
+
+            // Code for plugging performance data to the ai in real-time handled in the session manager.
+            
         }
 
          
@@ -124,17 +121,7 @@ public class BicycleAI : MonoBehaviour
 
     #region AI Type: Competitor
 
-    // A method designed to fetch a list of wattage values for each second of the workout tailored to the athletes performance in the previous two scenarios.
-    private Dictionary<string, List<float>> LoadAIPerformanceProfiles()
-    { 
-        DataManager dataManager = GameObject.FindAnyObjectByType<DataManager>();
-        
-        if (dataManager != null)
-        {
-            return dataManager.GenerateWorkoutProfiles(dataManager.participantID, dataManager.fileDirectory);
-        }
-        return null;
-    }
+
 
     #endregion
 

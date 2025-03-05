@@ -2445,7 +2445,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!135 &186231432
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -4753,7 +4753,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!135 &349573524
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -9164,13 +9164,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d958af3bd59bd74e836ae3b9755304e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scenarioMode: 2
+  scenarioMode: 3
   resistanceProfile: 0
   XROrigin: {fileID: 1681752735}
   spawnPose: {fileID: 21944776}
   bikePose: {fileID: 1076216125}
   activeAI: []
   pullTime: 10
+  aiPerformanceVariations:
+  - 10
+  - 0
+  - -10
   warmupDuration: 0
   rampDuration: 60
   rampIncrement: 0.1
@@ -15780,7 +15784,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!135 &1186442104
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -21439,7 +21443,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!135 &1491734331
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -25396,7 +25400,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!135 &1806863643
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -25611,7 +25615,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 3.1219046e-38, z: 7.76e-43, w: 8e-44}
+  m_BoundingSphereOverride: {x: 1.02e-43, y: 1e-45, z: 1.1891e-41, w: 8.619819e+9}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
@@ -28682,7 +28686,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!135 &1991400395
 SphereCollider:
   m_ObjectHideFlags: 0
