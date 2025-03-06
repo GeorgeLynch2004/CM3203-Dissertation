@@ -9,6 +9,7 @@ using System;
 using Unity.VisualScripting;
 using Unity.XR.CoreUtils.Datums;
 using System.Linq;
+using Unity.Mathematics;
 
 public class DataManager : MonoBehaviour
 {
@@ -543,6 +544,7 @@ public class DataManager : MonoBehaviour
             {
                 List<List<float>> allFilePowerData = new List<List<float>>();
                 List<List<float>> allFileHeartrateData = new List<List<float>>();
+                List<List<float>> allFileSpeedData = new List<List<float>>();
 
                 foreach (var file in participantIDFiles)
                 {
@@ -553,18 +555,23 @@ public class DataManager : MonoBehaviour
                     // Get Heartrate Data from file
                     List<float> heartrateData = GetColumnData(file,4);
 
+                    // Get Speed Data from file
+                    List<float> speedData = GetColumnData(file, 3);
+
                     // add them to the greater arrays
                     allFilePowerData.Add(powerData);
                     allFileHeartrateData.Add(heartrateData);
+                    allFileSpeedData.Add(speedData);
                 }
 
                 // FOR DEBUGGING
-                Debug.Log(allFilePowerData.ToString());
-                Debug.Log(allFileHeartrateData.ToString());
+                //Debug.Log(allFilePowerData.ToString());
+                //Debug.Log(allFileHeartrateData.ToString());
 
                 // Calculate averages across all file data
                 List<float> averageHistoricalPowerProfile = CalculateListAverage(allFilePowerData);
                 List<float> averageHistoricalHeartrateProfile = CalculateListAverage(allFileHeartrateData);
+                List<float> averageHistoricalSpeedProfile = CalculateListAverage(allFileSpeedData);
 
                 // FOR DEBUGGING
                 Debug.Log(averageHistoricalPowerProfile.ToString());
@@ -572,7 +579,8 @@ public class DataManager : MonoBehaviour
 
                 dict = new Dictionary<string, List<float>>(){
                     { "Power", averageHistoricalPowerProfile },
-                    { "Heartrate", averageHistoricalHeartrateProfile }
+                    { "Heartrate", averageHistoricalHeartrateProfile },
+                    { "Speed", averageHistoricalSpeedProfile }
                 };
             }
             else

@@ -294,7 +294,7 @@ public class SessionManager : MonoBehaviour
     #endregion
 
     #region Race
-    
+
     // this method
     private IEnumerator RaceCoroutine(List<float> performanceVariations, Dictionary<string, List<float>> performanceProfiles)
     {
@@ -304,11 +304,10 @@ public class SessionManager : MonoBehaviour
         .Where(ai => ai.GetAIType() == AIType.Competitor)
         .ToList();
 
-
         Debug.Log(performanceVariations.Count);
         Debug.Log(enemies.Count);
 
-        if  (performanceVariations.Count != enemies.Count)
+        if (performanceVariations.Count != enemies.Count)
         {
             Debug.LogError("Incorrect performance variations quantity.");
             yield return null;
@@ -322,24 +321,41 @@ public class SessionManager : MonoBehaviour
         {
             List<float> powerData = performanceProfiles["Power"];
             List<float> heartrateData = performanceProfiles["Heartrate"];
+            List<float> speedData = performanceProfiles["Speed"];
 
-            List<float> gracePeriod = new List<float> { 100f, 100f, 100f, 100f, 100f };
-            powerData.InsertRange(0, gracePeriod);
+            List<float> powerGracePeriod = new List<float> { 100f, 100f, 100f, 100f, 100f };
+            List<float> speedGracePeriod = new List<float> { 12f, 12f, 12f, 12, 12f };
+            powerData.InsertRange(0, powerGracePeriod);
+            speedData.InsertRange(0, speedGracePeriod);
 
-            while (second < powerData.Count) 
+            while (second < speedData.Count)
             {
                 float power = powerData[second];
                 float heartrate = heartrateData[second];
+                float speed = speedData[second];
 
                 for (int i = 0; i < enemies.Count; i++)
                 {
+                    // Apply performance variation to power
                     float adjustedPower = power * (1 + performanceVariations[i] / 100f);
+
+                    // Ensure adjustedPower doesn't go negative or too low
+                    float minPower = 0.1f;  // Minimum allowed power
+                    adjustedPower = Mathf.Max(adjustedPower, minPower);
+
+                    float adjustedSpeed = speed * (1 + performanceVariations[i] / 100f);
+                    float minSpeed = 1f;
+                    adjustedSpeed = Mathf.Max(adjustedSpeed, minSpeed);
 
                     if (heartrate > 0)
                     {
-                        // calculate adjustments to be made based on hr data.
+                        // Calculate adjustments based on heart rate data
                         float heartrateDifference = dataManager.currentHeartRate - heartrate;
                         float percentageDifference = heartrateDifference / heartrate * 100f;
+
+                        // Limit heart rate influence to avoid drastic changes in power
+                        float maxHeartRateAdjustment = 50f;  // Max adjustment based on heart rate
+                        percentageDifference = Mathf.Clamp(percentageDifference, -maxHeartRateAdjustment, maxHeartRateAdjustment);
 
                         if (heartrateDifference > 0)
                         {
@@ -350,27 +366,35 @@ public class SessionManager : MonoBehaviour
                             adjustedPower += adjustedPower * (Mathf.Abs(percentageDifference) / 100f);
                         }
                     }
-                    
 
-                    float speed = dataManager.CalculateSpeed(adjustedPower, 0.88f, 0.5f, 0.004f, 75f);
+                    // Calculate speed based on adjusted power
+                    //float speed = dataManager.CalculateSpeed(adjustedPower, 0.88f, 0.5f, 0.004f, 75f);
 
-                    Debug.Log(speed);
+                    // Enforce a minimum speed to avoid freezing or tiny updates
+                    //float minSpeed = 0.1f;  // Minimum speed threshold
+                    //speed = Mathf.Max(speed, minSpeed);
 
-                    // if the speed calculated is 0 that will cause the ai to grind to a half which we dont want
-                    if (speed > 0)
+                    // Only update pace if speed is above the minimum threshold
+                    if (speed > 1f) // Avoid sending tiny speed updates
                     {
                         enemies[i].UpdatePace(speed);
                     }
-                    
+                    else
+                    {
+                        Debug.LogWarning($"Speed too low for meaningful update. Speed: {speed}, AI: {i}");
+                    }
+
+                    // Optional: Debug log for adjusted power and speed for troubleshooting
+                    //Debug.Log($"AI {i} adjusted power: {adjustedPower}, speed: {speed}");
                 }
 
                 second++;
                 yield return new WaitForSeconds(1f);
             }
         }
-
-        
     }
+
+
 
     #endregion
 }
