@@ -38,6 +38,7 @@ public class BicycleAI : MonoBehaviour
     [SerializeField] private float selfPathDistance;
     [SerializeField] private float targetsPathDistance;
     [SerializeField] public float desiredAcceleration;
+    private NavMeshPath navmeshPath;
 
     // Collisions
     [Header("Collision Settings")]
@@ -130,12 +131,18 @@ public class BicycleAI : MonoBehaviour
 
     public void TakePull(Transform target)
     {
-        SetSmoothedDestination(target.position);
+        if (navmeshPath == null)
+        {
+            SetSmoothedDestination(target.position);
+        }
     }
 
     public void DraftTeammate(Transform target)
     {
-        SetSmoothedDestination(target.position);
+        if (navmeshPath == null)
+        {
+            SetSmoothedDestination(target.position);
+        }
 
         selfPathDistance = GetPathDistance(navmeshAgent, transform.position);
         targetsPathDistance = GetPathDistance(navmeshAgent, pacelineTargetPosition.position);
@@ -144,15 +151,15 @@ public class BicycleAI : MonoBehaviour
         {
             if (targetsPathDistance > 6f)
             {
-                UpdatePace(pacelineTargetPosition.GetComponent<NavMeshAgent>().speed + 2);
+                UpdatePace(sessionManager.GetPacelineSpeed() + 2);
             }
             else if (targetsPathDistance < 4f)
             {
-                UpdatePace(pacelineTargetPosition.GetComponent<NavMeshAgent>().speed - 2);
+                UpdatePace(sessionManager.GetPacelineSpeed() - 2);
             }
             else
             {
-                UpdatePace(pacelineTargetPosition.GetComponent<NavMeshAgent>().speed);
+                UpdatePace(sessionManager.GetPacelineSpeed());
             }
         }
         else if (aiType == AIType.Player)
@@ -160,6 +167,10 @@ public class BicycleAI : MonoBehaviour
             if (targetsPathDistance < 4f)
             {
                 UpdatePace(navmeshAgent.speed - 2);
+            }
+            if (targetsPathDistance > 6f)
+            {
+                UpdatePace(pacelineTargetPosition.GetComponent<NavMeshAgent>().speed + 2);
             }
         }
         
@@ -624,6 +635,16 @@ public class BicycleAI : MonoBehaviour
     public AIState GetAIState(AIState state)
     {
         return aiState;
+    }
+
+    public void SetNavMeshPath(NavMeshPath path)
+    {
+        navmeshPath = path;
+    }
+
+    public NavMeshPath GetNavMeshPath()
+    {
+        return navmeshPath;
     }
 
 

@@ -21,4 +21,16 @@ public class ChaseCollider : MonoBehaviour
             }
         }
     }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.gameObject.GetComponent<BicycleAI>() != null)
+        {
+            BicycleAI ai = other.gameObject.GetComponent<BicycleAI>();
+            if (ai.GetNavMeshPath() != null)
+            {
+                ai.SetNavMeshPath(null);
+            }
+        }
+    }
 }

@@ -7,6 +7,7 @@ using Unity.Mathematics;
 using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.XR;
+using UnityEngine.AI;
 
 public enum ScenarioMode
 {
@@ -250,6 +251,8 @@ public class SessionManager : MonoBehaviour
 
     private IEnumerator PacelineRoutine()
     {
+        Debug.Log("Starting paceline routine");
+
         while (true)
         {
             UpdatePacelinePositions();
@@ -289,6 +292,11 @@ public class SessionManager : MonoBehaviour
                 activeAI[i].GetComponent<BicycleAI>().UpdatePacelinePosition(activeAI[i-1].transform);
             }
         }
+    }
+
+    public float GetPacelineSpeed()
+    {
+        return activeAI[0].GetComponent<NavMeshAgent>().speed;
     }
 
     #endregion
