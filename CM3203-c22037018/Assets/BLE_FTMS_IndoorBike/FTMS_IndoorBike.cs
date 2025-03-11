@@ -35,9 +35,11 @@ public class FTMS_IndoorBike
     int sended_resistance = 0;
 
     MonoBehaviour mono;
-    public FTMS_IndoorBike(MonoBehaviour _mono)
+    FTMS_UI ui;
+    public FTMS_IndoorBike(MonoBehaviour _mono, FTMS_UI _ui)
     {
         mono = _mono;
+        ui = _ui;
     }
 
     // Start is called before the first frame update
@@ -68,6 +70,8 @@ public class FTMS_IndoorBike
         Debug.Log("connecting read characteristic finish");
 
         read_subscribe();
+
+        ui.connected = true;
     }
 
     IEnumerator connect_device()

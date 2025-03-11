@@ -30,6 +30,9 @@ public class SessionManager : MonoBehaviour
     private ScenarioMode previousFrameScenarioMode;
     [SerializeField] private ResistanceProfile resistanceProfile;
 
+    [Header("Menu Settings")]
+    [SerializeField] private Transform menuParent;
+
     [Header("XR Settings")]
     [SerializeField] private GameObject XROrigin;
     [SerializeField] private Transform spawnPose;
@@ -158,6 +161,14 @@ public class SessionManager : MonoBehaviour
         else
         {
             Debug.LogWarning("XRInputSubsystem is null, recentering failed.");
+        }
+    }
+
+    public void ToggleMenus()
+    {
+        if (menuParent != null)
+        {
+            menuParent.gameObject.SetActive(!menuParent.gameObject.activeSelf);
         }
     }
 

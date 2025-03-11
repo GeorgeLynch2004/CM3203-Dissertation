@@ -6,6 +6,8 @@ using UnityEngine.UI;
 
 public class HeartrateScanner : MonoBehaviour
 {
+    public FTMS_IndoorBike connector;
+
     // UUIDs for the Polar H10 heart rate monitor service and characteristics
     [SerializeField] private string H10_DEVICE_NAME = "Polar H10 D7E96D26";
     [SerializeField] private string HEART_RATE_SERVICE_UUID = "{0000180d-0000-1000-8000-00805f9b34fb}";  // Heart Rate Service UUID
@@ -24,7 +26,10 @@ public class HeartrateScanner : MonoBehaviour
     [SerializeField] private DataManager dataManager;
     [SerializeField] private RawImage colourIndicator;
 
-    
+    private void Start()
+    {
+
+    }
 
     public void connect()
     {

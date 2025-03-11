@@ -75,6 +75,9 @@ public class DataManager : MonoBehaviour
             Directory.CreateDirectory(fileDirectory);
         }
 
+        // establish device connections
+        StartCoroutine(EstablishDeviceConnections());
+
         StartCoroutine(ListenForPowerOutputStart());
     }
 
@@ -99,29 +102,21 @@ public class DataManager : MonoBehaviour
         UpdateHUD();
     }
 
-    private void EstablishDeviceConnections()
+    private IEnumerator EstablishDeviceConnections()
     {
-        // Exercise bike.
-        exerciseBikeScript = GameObject.Find("FTMS_UI").GetComponent<FTMS_UI>();
+        // connections gameObject
+        GameObject obj = GameObject.Find("FTMS_UI");
+        FTMS_UI bike = obj.GetComponent<FTMS_UI>();
+        HeartRateMonitor_UI hr = obj.GetComponent<HeartRateMonitor_UI>();
 
-        if (exerciseBikeScript != null)
-        {
-            // try to connect exercise bike automatically.
-            exerciseBikeScript.connect();
-        }
+        // Wait for the bike connection to finish
+        bike.BeginConnection();
+        yield return new WaitUntil(() => bike.connected);
 
-        // Heartrate monitor.
-        heartrateScript = GameObject.Find("HeartrateMonitor").GetComponent<HeartrateScanner>();
-
-
-        if (heartrateScript != null)
-        {
-            heartrateScript.connect();
-        }
-            
-
-        
+        hr.BeginConnection();
+        yield return new WaitUntil(() => hr.connected);
     }
+
 
     private IEnumerator LogData()
     {
