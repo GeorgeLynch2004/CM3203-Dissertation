@@ -21,8 +21,31 @@ public class HUD : MonoBehaviour
     [SerializeField] public TextMeshProUGUI dateAndTime;
     [SerializeField] public TextMeshProUGUI messagePopUp;
 
+    [Header("Data Parent")]
+    [SerializeField] private GameObject dataParent;
+
     public void UpdateText(TextMeshProUGUI txt, string val)
     {
         txt.text = val;
+    }
+
+    private void Update()
+    {
+        transform.LookAt(SessionManager.Instance.XROrigin.transform);
+    }
+
+    public void ToggleHideData()
+    {
+        if (dataParent == null)
+        {
+            Debug.LogWarning("Data parent not assigned in editor");
+            return;
+        }
+        dataParent.SetActive(!dataParent.activeSelf);
+    }
+
+    public void ReturnToTutorialArea()
+    {
+        SessionManager.Instance.SetUndecidedMode();
     }
 }

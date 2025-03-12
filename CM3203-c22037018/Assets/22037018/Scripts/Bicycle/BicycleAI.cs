@@ -51,8 +51,6 @@ public class BicycleAI : MonoBehaviour
     [SerializeField] private GameObject playerObject;
     [SerializeField] private Transform bodyParent;
 
-    private SessionManager sessionManager;
-
     // Overtake Coroutine
     private Coroutine overtakeCoroutine;
     public Transform raycastOrigin;
@@ -74,18 +72,17 @@ public class BicycleAI : MonoBehaviour
         playerObject = GameObject.FindGameObjectsWithTag("AI")
                            .FirstOrDefault(obj => obj.GetComponent<BicycleAI>().aiType == AIType.Player);
         navmeshAgent = GetComponent<NavMeshAgent>();
-        sessionManager = GameObject.Find("SessionManager").GetComponent<SessionManager>();
     }
 
     private void Update() 
     {
         // Baseline Game Loop
-        if (sessionManager.GetCurrentScenarioMode() == ScenarioMode.Baseline)
+        if (SessionManager.Instance.GetCurrentScenarioMode() == ScenarioMode.Baseline)
         {
             TakePull(MapTargetPosition);
         }
         // Cooperative Game Loop
-        if (sessionManager.GetCurrentScenarioMode() == ScenarioMode.Cooperative)
+        if (SessionManager.Instance.GetCurrentScenarioMode() == ScenarioMode.Cooperative)
         {
             if (aiState == AIState.Pulling)
             {
@@ -99,7 +96,7 @@ public class BicycleAI : MonoBehaviour
             }
         }
         // Competitive Game Loop
-        if (sessionManager.GetCurrentScenarioMode() == ScenarioMode.Competitive)
+        if (SessionManager.Instance.GetCurrentScenarioMode() == ScenarioMode.Competitive)
         {
             // Permanently have the AI trained to the target on the map not an opponent as the goal is the same for all bikes: getting into first.
             if (MapTargetPosition != null)
@@ -151,15 +148,15 @@ public class BicycleAI : MonoBehaviour
         {
             if (targetsPathDistance > 6f)
             {
-                UpdatePace(sessionManager.GetPacelineSpeed() + 2);
+                UpdatePace(SessionManager.Instance.GetPacelineSpeed() + 2);
             }
             else if (targetsPathDistance < 4f)
             {
-                UpdatePace(sessionManager.GetPacelineSpeed() - 2);
+                UpdatePace(SessionManager.Instance.GetPacelineSpeed() - 2);
             }
             else
             {
-                UpdatePace(sessionManager.GetPacelineSpeed());
+                UpdatePace(SessionManager.Instance.GetPacelineSpeed());
             }
         }
         else if (aiType == AIType.Player)

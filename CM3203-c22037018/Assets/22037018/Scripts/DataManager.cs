@@ -13,6 +13,9 @@ using Unity.Mathematics;
 
 public class DataManager : MonoBehaviour
 {
+    // Setup singleton instance
+    public static DataManager Instance { get; private set; }
+
     public string fileDirectory;
     private string directory;
     [SerializeField] private string fileName;
@@ -20,9 +23,6 @@ public class DataManager : MonoBehaviour
 
     [Header("Player Reference")]
     [SerializeField] private BicycleAI player;
-
-    [Header("SessionManager Reference")]
-    [SerializeField] private SessionManager sessionManager;
 
     [Header("Exercise Bike Script Reference")]
     [SerializeField] private FTMS_UI exerciseBikeScript;
@@ -57,6 +57,20 @@ public class DataManager : MonoBehaviour
     float rollingResistanceCoefficient = 0.004f; // Rolling resistance coefficient
     float bikeMass = 75f; // Combined mass of cyclist and bike in kg
 
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -66,7 +80,6 @@ public class DataManager : MonoBehaviour
         listeningForPowerOutput = false;
         dataLoggingFlag = false;
         currentDurationData = 0;
-        sessionManager = GameObject.Find("SessionManager").GetComponent<SessionManager>();
 
         fileDirectory = Path.Combine(Application.dataPath, "Performance Logs");
 
@@ -96,7 +109,7 @@ public class DataManager : MonoBehaviour
 
         // Update current date/time and scenario mode
         dateAndTime = DateTime.Now;
-        scenarioMode = sessionManager.GetCurrentScenarioMode();
+        scenarioMode = SessionManager.Instance.GetCurrentScenarioMode();
 
         // Update the HUD
         UpdateHUD();
@@ -147,7 +160,7 @@ public class DataManager : MonoBehaviour
         {
             if (currentPower > 0)
             {
-                sessionManager.BeginSession();
+                SessionManager.Instance.BeginSession();
 
                 messagePopUp = "Beginning to log data in 10 seconds.";
 

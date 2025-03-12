@@ -8,6 +8,8 @@ using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.XR;
 using UnityEngine.AI;
+using Unity.VisualScripting;
+using Autodesk.Fbx;
 
 public enum ScenarioMode
 {
@@ -25,16 +27,22 @@ public enum ResistanceProfile
 
 public class SessionManager : MonoBehaviour
 {
+    // setup singleton instance
+    public static SessionManager Instance { get; private set; }
+
     [Header("Scenario Settings")]
     [SerializeField] private ScenarioMode scenarioMode;
     private ScenarioMode previousFrameScenarioMode;
     [SerializeField] private ResistanceProfile resistanceProfile;
+    [SerializeField] private GameObject cooperativePrefab;
+    [SerializeField] private GameObject competitivePrefab;
+
 
     [Header("Menu Settings")]
     [SerializeField] private Transform menuParent;
 
     [Header("XR Settings")]
-    [SerializeField] private GameObject XROrigin;
+    [SerializeField] public GameObject XROrigin;
     [SerializeField] private Transform spawnPose;
     [SerializeField] private Transform bikePose;
     private bool lerping;
@@ -56,13 +64,22 @@ public class SessionManager : MonoBehaviour
     [SerializeField] private float rampDuration = 60; // 1 minute
     [SerializeField] private float rampIncrement = 0.1f; // 10% every 10 seconds
 
-    private DataManager dataManager;
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
 
     private void Start()
     {
-        DontDestroyOnLoad(gameObject);
         lerping = false;
-        dataManager = GameObject.FindAnyObjectByType<DataManager>();
     }
 
     private void Update()
@@ -90,7 +107,7 @@ public class SessionManager : MonoBehaviour
         }
         if (scenarioMode == ScenarioMode.Competitive && activeAI.Count > 1)
         {
-            raceCoroutine = StartCoroutine(RaceCoroutine(aiPerformanceVariations, dataManager.GenerateWorkoutProfiles(dataManager.participantID, Path.Combine(Application.dataPath, "Performance Logs"))));
+            raceCoroutine = StartCoroutine(RaceCoroutine(aiPerformanceVariations, DataManager.Instance.GenerateWorkoutProfiles(DataManager.Instance.participantID, Path.Combine(Application.dataPath, "Performance Logs"))));
         }
     }
 
@@ -177,6 +194,11 @@ public class SessionManager : MonoBehaviour
 
     #region Scenario Modes
 
+    public void SetUndecidedMode()
+    {
+        scenarioMode = ScenarioMode.Undecided;
+    }
+
     public void SetBaselineMode()
     {
         scenarioMode = ScenarioMode.Baseline;
@@ -205,13 +227,34 @@ public class SessionManager : MonoBehaviour
             {
                 if (lerping == false) MoveToPose(XROrigin.transform, spawnPose, true);
             }
-            else if (scenarioMode != ScenarioMode.Undecided && XROrigin.transform.GetWorldPose() != bikePose.GetWorldPose())
+            else if (scenarioMode == ScenarioMode.Cooperative && XROrigin.transform.GetWorldPose() != bikePose.GetWorldPose())
             {
-                if (lerping == false) MoveToPose(XROrigin.transform, bikePose, true);
+                if (lerping == false)
+                {
+                    MoveToPose(XROrigin.transform, bikePose, true);
+                    SpawnCooperativeScenarioPrefab();
+                }
+            }
+            else if (scenarioMode == ScenarioMode.Competitive && XROrigin.transform.GetWorldPose() != bikePose.GetWorldPose())
+            {
+                if (lerping == false)
+                {
+                    MoveToPose(XROrigin.transform, bikePose, true);
+                    SpawnCompetitiveScenarioPrefab();
+                }
             }
         }
-
         previousFrameScenarioMode = scenarioMode;
+    }
+
+    public void SpawnCooperativeScenarioPrefab()
+    {
+        Instantiate(cooperativePrefab, Vector3.zero, Quaternion.identity);
+    }
+
+    public void SpawnCompetitiveScenarioPrefab()
+    {
+        Instantiate(competitivePrefab, Vector3.zero, Quaternion.identity);
     }
 
     #endregion
@@ -369,7 +412,7 @@ public class SessionManager : MonoBehaviour
                     if (heartrate > 0)
                     {
                         // Calculate adjustments based on heart rate data
-                        float heartrateDifference = dataManager.currentHeartRate - heartrate;
+                        float heartrateDifference = DataManager.Instance.currentHeartRate - heartrate;
                         float percentageDifference = heartrateDifference / heartrate * 100f;
 
                         // Limit heart rate influence to avoid drastic changes in power
