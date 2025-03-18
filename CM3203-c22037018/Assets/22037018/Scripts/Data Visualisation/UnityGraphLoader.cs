@@ -39,6 +39,8 @@ public class UnityGraphLoader : MonoBehaviour
         psi.UseShellExecute = false;
         psi.CreateNoWindow = true;
 
+        UnityEngine.Debug.Log($"Command: python \"{destScriptPath}\" \"{destCsvPath}\" \"{imagePath}\"");
+
         // Execute Python process
         using (Process process = Process.Start(psi))
         {

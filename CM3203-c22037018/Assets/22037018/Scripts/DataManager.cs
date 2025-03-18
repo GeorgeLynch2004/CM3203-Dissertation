@@ -241,12 +241,11 @@ public class DataManager : MonoBehaviour
 
     public void GenerateGraphs()
     {
-        if (scenarioMode == ScenarioMode.Baseline)
-            baselineGraphs.RunDataVisualisationScript(Path.Combine(Application.persistentDataPath, "DataVis.py"), directory, Path.Combine(Application.persistentDataPath, $"{fileName}_{scenarioMode}_{participantID}.csv"));
-        else if (scenarioMode == ScenarioMode.Cooperative)
-            cooperativeGraphs.RunDataVisualisationScript(Path.Combine(Application.persistentDataPath, "DataVis.py"), directory, Path.Combine(Application.persistentDataPath, $"{fileName}_{scenarioMode}_{participantID}.csv"));
-        else if (scenarioMode == ScenarioMode.Competitive)
-            competitiveGraphs.RunDataVisualisationScript(Path.Combine(Application.persistentDataPath, "DataVis.py"), directory, Path.Combine(Application.persistentDataPath, $"{fileName}_{scenarioMode}_{participantID}.csv"));
+        string performance_logs_folder = Path.Combine(Application.persistentDataPath, "Performance Logs");
+
+        baselineGraphs.RunDataVisualisationScript(Path.Combine(Application.persistentDataPath, "DataVis.py"), Path.Combine(performance_logs_folder, $"{fileName}_{ScenarioMode.Baseline}_{participantID}.csv"), Path.Combine(Application.persistentDataPath, $"{fileName}_{ScenarioMode.Baseline}_{participantID}.csv"));
+        cooperativeGraphs.RunDataVisualisationScript(Path.Combine(Application.persistentDataPath, "DataVis.py"), Path.Combine(performance_logs_folder, $"{fileName}_{ScenarioMode.Cooperative}_{participantID}.csv"), Path.Combine(Application.persistentDataPath, $"{fileName}_{ScenarioMode.Cooperative}_{participantID}.csv"));
+        competitiveGraphs.RunDataVisualisationScript(Path.Combine(Application.persistentDataPath, "DataVis.py"), Path.Combine(performance_logs_folder, $"{fileName}_{ScenarioMode.Competitive}_{participantID}.csv"), Path.Combine(Application.persistentDataPath, $"{fileName}_{ScenarioMode.Competitive}_{participantID}.csv"));
     }
 
     private IEnumerator UploadPopUpMessage(string msg, float timeframe)
