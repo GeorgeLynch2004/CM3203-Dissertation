@@ -2,14 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using Unity.Mathematics;
 using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.XR;
 using UnityEngine.AI;
-using Unity.VisualScripting;
-using Autodesk.Fbx;
 
 public enum ScenarioMode
 {
