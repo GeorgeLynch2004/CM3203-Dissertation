@@ -24,6 +24,11 @@ public class HUD : MonoBehaviour
     [Header("Data Parent")]
     [SerializeField] private GameObject dataParent;
 
+    [Header("VR Camera")]
+    [SerializeField] private Camera cameraToLookAt;
+
+
+
     public void UpdateText(TextMeshProUGUI txt, string val)
     {
         txt.text = val;
@@ -31,7 +36,7 @@ public class HUD : MonoBehaviour
 
     private void Update()
     {
-        transform.LookAt(SessionManager.Instance.XROrigin.transform);
+        transform.LookAt(cameraToLookAt.transform);
     }
 
     public void ToggleHideData()

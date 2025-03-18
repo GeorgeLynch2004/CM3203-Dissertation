@@ -17,7 +17,7 @@ public class DataManager : MonoBehaviour
     public static DataManager Instance { get; private set; }
 
     public string fileDirectory;
-    private string directory;
+    [SerializeField] private string directory;
     [SerializeField] private string fileName;
     private StreamWriter writer;
 
@@ -51,6 +51,11 @@ public class DataManager : MonoBehaviour
     [Header("Heads Up Display (HUD)")]
     [SerializeField] private HUD headsUpDisplay;
 
+    [Header("Graph Generators")]
+    [SerializeField] private UnityGraphLoader baselineGraphs;
+    [SerializeField] private UnityGraphLoader cooperativeGraphs;
+    [SerializeField] private UnityGraphLoader competitiveGraphs;
+
     // Bicycle physics values
     float dragCoefficient = 0.88f; // Drag coefficient for a cyclist (varies by position)
     float frontalArea = 0.5f; // Frontal area of the cyclist + bike in square meters
@@ -81,7 +86,7 @@ public class DataManager : MonoBehaviour
         dataLoggingFlag = false;
         currentDurationData = 0;
 
-        fileDirectory = Path.Combine(Application.dataPath, "Performance Logs");
+        fileDirectory = Path.Combine(Application.persistentDataPath, "Performance Logs");
 
         if (!Directory.Exists(fileDirectory))
         {
@@ -229,6 +234,19 @@ public class DataManager : MonoBehaviour
         }
 
         listeningForPowerOutput = false; // Stop listening once logging has been stopped
+        // generate graphs
+        GenerateGraphs();
+        
+    }
+
+    public void GenerateGraphs()
+    {
+        if (scenarioMode == ScenarioMode.Baseline)
+            baselineGraphs.RunDataVisualisationScript(Path.Combine(Application.persistentDataPath, "DataVis.py"), directory, Path.Combine(Application.persistentDataPath, $"{fileName}_{scenarioMode}_{participantID}.csv"));
+        else if (scenarioMode == ScenarioMode.Cooperative)
+            cooperativeGraphs.RunDataVisualisationScript(Path.Combine(Application.persistentDataPath, "DataVis.py"), directory, Path.Combine(Application.persistentDataPath, $"{fileName}_{scenarioMode}_{participantID}.csv"));
+        else if (scenarioMode == ScenarioMode.Competitive)
+            competitiveGraphs.RunDataVisualisationScript(Path.Combine(Application.persistentDataPath, "DataVis.py"), directory, Path.Combine(Application.persistentDataPath, $"{fileName}_{scenarioMode}_{participantID}.csv"));
     }
 
     private IEnumerator UploadPopUpMessage(string msg, float timeframe)
