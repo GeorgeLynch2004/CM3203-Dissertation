@@ -40,7 +40,12 @@ public class FTMS_IndoorBike
     public float power; public bool has_power = false;
     public float average_power; public bool has_average_power = false;
     public float expended_energy; public bool has_expended_energy = false;
-    public int heart_rate; public bool has_heart_rate = false;
+
+
+    public int heartRate; public bool has_heartRate = false;
+    public bool contact_detected; public bool has_contact = false;
+    public bool rr_interval_present; public bool has_rr_interval = false;
+    public List<int> rr_intervals = new List<int>(); // RR intervals in ms
 
     string lastError;
 
@@ -69,23 +74,6 @@ public class FTMS_IndoorBike
 
         quit();
 
-        yield return mono.StartCoroutine(connect_device());
-        if (selectedDeviceId.Length == 0) yield break;
-
-        Debug.Log("connecting device finish");
-
-        yield return mono.StartCoroutine(connect_service());
-        if (selectedServiceId.Length == 0) yield break;
-
-        Debug.Log("connecting service finish");
-
-        yield return mono.StartCoroutine(connect_read_characteristic());
-        if (selectedCharacteristicId.Length == 0) yield break;
-
-        Debug.Log("connecting read characteristic finish");
-
-        read_subscribe();
-
         // Connect to HRM
         yield return mono.StartCoroutine(connect_hrm_device());
         if (selectedHRMDeviceId.Length == 0) yield break;
@@ -103,6 +91,18 @@ public class FTMS_IndoorBike
         Debug.Log("connecting HRM read characteristic finish");
 
         read_hrm_subscribe();
+
+        yield return mono.StartCoroutine(connect_device());
+        if (selectedDeviceId.Length == 0) yield break;
+
+        yield return mono.StartCoroutine(connect_service());
+        if (selectedDeviceId.Length == 0) yield break;
+
+        yield return mono.StartCoroutine(connect_read_characteristic());
+        if (selectedDeviceId.Length == 0) yield break;
+
+        read_subscribe();
+
     }
 
     IEnumerator connect_device()
@@ -323,6 +323,8 @@ public class FTMS_IndoorBike
 
             while (BleApi.PollData(out res, false))
             {
+                if (res.deviceId != selectedDeviceId) return;
+
                 has_speed = false;
                 has_average_speed = false;
                 has_rpm = false;
@@ -415,17 +417,76 @@ public class FTMS_IndoorBike
 
             while (BleApi.PollData(out res, false))
             {
-                has_heart_rate = false;
+                if (res.deviceId != selectedHRMDeviceId) return;
+
+                has_heartRate = false;
+                has_contact = false;
+                has_rr_interval = false;
+                rr_intervals.Clear();
 
                 hrm_output = String.Empty;
                 int index = 0;
-                int flags = BitConverter.ToUInt16(res.buf, index);
-                index += 2;
-                if ((flags & 1) == 1)
+
+                // Read first byte for flags
+                byte flags = res.buf[index++];
+
+                // Heart Rate Value Format bit (0 = UINT8, 1 = UINT16)
+                bool isUint16 = (flags & 0x01) != 0;
+
+                // Sensor Contact Status bits
+                bool contactSensorPresent = (flags & 0x04) != 0;
+                if (contactSensorPresent)
                 {
-                    has_heart_rate = true;
-                    heart_rate = (int)res.buf[index];
-                    hrm_output += "Heart Rate: " + heart_rate + "\\n";
+                    has_contact = true;
+                    contact_detected = (flags & 0x02) != 0;
+                    hrm_output += "Contact: " + (contact_detected ? "Detected" : "Not Detected") + "\n";
+                }
+
+                // Energy Expended Status bit
+                bool energyExpendedPresent = (flags & 0x08) != 0;
+
+                // RR-Interval bit
+                rr_interval_present = (flags & 0x10) != 0;
+                has_rr_interval = rr_interval_present;
+
+                // Read the Heart Rate Measurement Value
+                if (isUint16)
+                {
+                    heartRate = BitConverter.ToUInt16(res.buf, index);
+                    index += 2;
+                }
+                else
+                {
+                    heartRate = res.buf[index++];
+                }
+                has_heartRate = true;
+                hrm_output += "Heart Rate: " + heartRate + " bpm\n";
+
+                // Skip Energy Expended field if present
+                if (energyExpendedPresent)
+                {
+                    index += 2; // UINT16
+                }
+
+                // Read RR-Intervals if present
+                if (rr_interval_present)
+                {
+                    // Calculate how many RR intervals are in the packet
+                    // Each RR interval is 2 bytes (UINT16)
+                    int remainingBytes = res.size - index;
+                    int rrIntervalCount = remainingBytes / 2;
+
+                    hrm_output += "RR Intervals: ";
+                    for (int i = 0; i < rrIntervalCount; i++)
+                    {
+                        int rrInterval = BitConverter.ToUInt16(res.buf, index);
+                        index += 2;
+                        // RR intervals are in 1/1024 second units, convert to milliseconds
+                        int rrIntervalMs = (int)Math.Round(rrInterval * 1000.0 / 1024.0);
+                        rr_intervals.Add(rrIntervalMs);
+                        hrm_output += rrIntervalMs + "ms ";
+                    }
+                    hrm_output += "\n";
                 }
             }
 
