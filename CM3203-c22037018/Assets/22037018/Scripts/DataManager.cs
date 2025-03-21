@@ -24,11 +24,6 @@ public class DataManager : MonoBehaviour
     [Header("Player Reference")]
     [SerializeField] private BicycleAI player;
 
-    [Header("Exercise Bike Script Reference")]
-    [SerializeField] private FTMS_UI exerciseBikeScript;
-
-    [Header("Heartrate Monitor Script Reference")]
-    [SerializeField] private HeartrateScanner heartrateScript;
 
     [Header("Performance Metrics")]
     [SerializeField] public float currentPower; 
@@ -94,7 +89,7 @@ public class DataManager : MonoBehaviour
         }
 
         // establish device connections
-        StartCoroutine(EstablishDeviceConnections());
+        EstablishDeviceConnections();
 
         StartCoroutine(ListenForPowerOutputStart());
     }
@@ -120,19 +115,9 @@ public class DataManager : MonoBehaviour
         UpdateHUD();
     }
 
-    private IEnumerator EstablishDeviceConnections()
+    private void EstablishDeviceConnections()
     {
-        // connections gameObject
-        GameObject obj = GameObject.Find("FTMS_UI");
-        FTMS_UI bike = obj.GetComponent<FTMS_UI>();
-        HeartRateMonitor_UI hr = obj.GetComponent<HeartRateMonitor_UI>();
-
-        // Wait for the bike connection to finish
-        bike.BeginConnection();
-        yield return new WaitUntil(() => bike.connected);
-
-        hr.BeginConnection();
-        yield return new WaitUntil(() => hr.connected);
+        FTMS_UI.Instance.connect();
     }
 
 

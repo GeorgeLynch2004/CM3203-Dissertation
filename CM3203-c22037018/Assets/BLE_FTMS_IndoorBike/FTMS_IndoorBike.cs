@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityDebug = UnityEngine.Debug;
+using SysDebug = System.Diagnostics.Debug;
 
 public class FTMS_IndoorBike
 {
@@ -10,15 +12,25 @@ public class FTMS_IndoorBike
     string read_characteristic;
     string write_characteristic;
 
+    string hrm_device_name;
+    string hrm_service_id;
+    string hrm_read_characteristic;
+
     public bool want_connect = true;
     Dictionary<string, Dictionary<string, string>> devices = new Dictionary<string, Dictionary<string, string>>();
     string selectedDeviceId = "";
     string selectedServiceId = "";
     string selectedCharacteristicId = "";
 
+    string selectedHRMDeviceId = "";
+    string selectedHRMServiceId = "";
+    string selectedHRMCharacteristicId = "";
+
     bool isSubscribed = false;
+    bool isHRMSubscribed = false;
 
     public string output;
+    public string hrm_output;
     public float speed; public bool has_speed = false;
     public float average_speed; public bool has_average_speed = false;
     public float rpm; public bool has_rpm = false;
@@ -28,22 +40,21 @@ public class FTMS_IndoorBike
     public float power; public bool has_power = false;
     public float average_power; public bool has_average_power = false;
     public float expended_energy; public bool has_expended_energy = false;
+    public int heart_rate; public bool has_heart_rate = false;
 
     string lastError;
 
     float last_write_time = 0.0f;
+
     int sended_resistance = 0;
 
     MonoBehaviour mono;
-    FTMS_UI ui;
-    public FTMS_IndoorBike(MonoBehaviour _mono, FTMS_UI _ui)
+    public FTMS_IndoorBike(MonoBehaviour _mono)
     {
         mono = _mono;
-        ui = _ui;
     }
 
-    // Start is called before the first frame update
-    public IEnumerator connect(string _device_name = "WattbikePT28004316", string _service_id = "{babf1723-cedb-444c-88c3-c672c7a59806}", string _read_characteristic = "{babf1724-cedb-444c-88c3-c672c7a59806}", string _write_characteristic = "{babf1725-cedb-444c-88c3-c672c7a59806}")
+    public IEnumerator connect(string _device_name = "WattbikePT28004316", string _service_id = "{babf1723-cedb-444c-88c3-c672c7a59806}", string _read_characteristic = "{babf1724-cedb-444c-88c3-c672c7a59806}", string _write_characteristic = "{babf1725-cedb-444c-88c3-c672c7a59806}", string _hrm_device_name = "HeartRateMonitor", string _hrm_service_id = "{hrm_service_id}", string _hrm_read_characteristic = "{hrm_read_characteristic}")
     {
         if (!want_connect) yield break;
 
@@ -51,6 +62,10 @@ public class FTMS_IndoorBike
         service_id = _service_id;
         read_characteristic = _read_characteristic;
         write_characteristic = _write_characteristic;
+
+        hrm_device_name = _hrm_device_name;
+        hrm_service_id = _hrm_service_id;
+        hrm_read_characteristic = _hrm_read_characteristic;
 
         quit();
 
@@ -71,7 +86,23 @@ public class FTMS_IndoorBike
 
         read_subscribe();
 
-        ui.connected = true;
+        // Connect to HRM
+        yield return mono.StartCoroutine(connect_hrm_device());
+        if (selectedHRMDeviceId.Length == 0) yield break;
+
+        Debug.Log("connecting HRM device finish");
+
+        yield return mono.StartCoroutine(connect_hrm_service());
+        if (selectedHRMServiceId.Length == 0) yield break;
+
+        Debug.Log("connecting HRM service finish");
+
+        yield return mono.StartCoroutine(connect_hrm_read_characteristic());
+        if (selectedHRMCharacteristicId.Length == 0) yield break;
+
+        Debug.Log("connecting HRM read characteristic finish");
+
+        read_hrm_subscribe();
     }
 
     IEnumerator connect_device()
@@ -83,14 +114,13 @@ public class FTMS_IndoorBike
         do
         {
             status = BleApi.PollDevice(ref device_res, false);
-            //Debug.Log(count++);
             if (status == BleApi.ScanStatus.AVAILABLE)
             {
                 if (!devices.ContainsKey(device_res.id))
                     devices[device_res.id] = new Dictionary<string, string>() {
-                            { "name", "" },
-                            { "isConnectable", "False" }
-                        };
+                        { "name", "" },
+                        { "isConnectable", "False" }
+                    };
                 if (device_res.nameUpdated)
                     devices[device_res.id]["name"] = device_res.name;
                 if (device_res.isConnectableUpdated)
@@ -98,14 +128,12 @@ public class FTMS_IndoorBike
                 // consider only devices which have a name and which are connectable
                 if (devices[device_res.id]["name"] == device_name && devices[device_res.id]["isConnectable"] == "True")
                 {
-                    //BleApi.Connect(device_res.id);
                     selectedDeviceId = device_res.id;
                     break;
                 }
             }
             else if (status == BleApi.ScanStatus.FINISHED)
             {
-
                 if (selectedDeviceId.Length == 0)
                 {
                     Debug.LogError("device " + device_name + " not found!");
@@ -136,7 +164,7 @@ public class FTMS_IndoorBike
             {
                 if (selectedServiceId.Length == 0)
                 {
-                    Debug.LogError("service " + service_id  + " not found!");
+                    Debug.LogError("service " + service_id + " not found!");
                 }
             }
             yield return 0;
@@ -149,7 +177,6 @@ public class FTMS_IndoorBike
         BleApi.ScanCharacteristics(selectedDeviceId, selectedServiceId);
         BleApi.ScanStatus status;
         BleApi.Characteristic characteristics_res = new BleApi.Characteristic();
-
         do
         {
             status = BleApi.PollCharacteristic(out characteristics_res, false);
@@ -172,6 +199,100 @@ public class FTMS_IndoorBike
         } while (status == BleApi.ScanStatus.AVAILABLE || status == BleApi.ScanStatus.PROCESSING);
     }
 
+    IEnumerator connect_hrm_device()
+    {
+        Debug.Log("connecting HRM device...");
+        BleApi.StartDeviceScan();
+        BleApi.ScanStatus status = BleApi.ScanStatus.AVAILABLE;
+        BleApi.DeviceUpdate device_res = new BleApi.DeviceUpdate();
+        do
+        {
+            status = BleApi.PollDevice(ref device_res, false);
+            if (status == BleApi.ScanStatus.AVAILABLE)
+            {
+                if (!devices.ContainsKey(device_res.id))
+                    devices[device_res.id] = new Dictionary<string, string>() {
+                        { "name", "" },
+                        { "isConnectable", "False" }
+                    };
+                if (device_res.nameUpdated)
+                    devices[device_res.id]["name"] = device_res.name;
+                if (device_res.isConnectableUpdated)
+                    devices[device_res.id]["isConnectable"] = device_res.isConnectable.ToString();
+                // consider only devices which have a name and which are connectable
+                if (devices[device_res.id]["name"] == hrm_device_name && devices[device_res.id]["isConnectable"] == "True")
+                {
+                    selectedHRMDeviceId = device_res.id;
+                    break;
+                }
+            }
+            else if (status == BleApi.ScanStatus.FINISHED)
+            {
+                if (selectedHRMDeviceId.Length == 0)
+                {
+                    Debug.LogError("HRM device " + hrm_device_name + " not found!");
+                }
+            }
+            yield return 0;
+        } while (status == BleApi.ScanStatus.AVAILABLE || status == BleApi.ScanStatus.PROCESSING);
+    }
+
+    IEnumerator connect_hrm_service()
+    {
+        Debug.Log("connecting HRM service...");
+        BleApi.ScanServices(selectedHRMDeviceId);
+        BleApi.ScanStatus status;
+        BleApi.Service service_res = new BleApi.Service();
+        do
+        {
+            status = BleApi.PollService(out service_res, false);
+            if (status == BleApi.ScanStatus.AVAILABLE)
+            {
+                if (service_res.uuid == hrm_service_id)
+                {
+                    selectedHRMServiceId = service_res.uuid;
+                    break;
+                }
+            }
+            else if (status == BleApi.ScanStatus.FINISHED)
+            {
+                if (selectedHRMServiceId.Length == 0)
+                {
+                    Debug.LogError("HRM service " + hrm_service_id + " not found!");
+                }
+            }
+            yield return 0;
+        } while (status == BleApi.ScanStatus.AVAILABLE || status == BleApi.ScanStatus.PROCESSING);
+    }
+
+    IEnumerator connect_hrm_read_characteristic()
+    {
+        Debug.Log("connecting HRM characteristic...");
+        BleApi.ScanCharacteristics(selectedHRMDeviceId, selectedHRMServiceId);
+        BleApi.ScanStatus status;
+        BleApi.Characteristic characteristics_res = new BleApi.Characteristic();
+        do
+        {
+            status = BleApi.PollCharacteristic(out characteristics_res, false);
+            if (status == BleApi.ScanStatus.AVAILABLE)
+            {
+                if (characteristics_res.uuid == hrm_read_characteristic)
+                {
+                    selectedHRMCharacteristicId = characteristics_res.uuid;
+                    break;
+                }
+            }
+            else if (status == BleApi.ScanStatus.FINISHED)
+            {
+                if (selectedHRMCharacteristicId.Length == 0)
+                {
+                    Debug.LogError("HRM characteristic " + hrm_read_characteristic + " not found!");
+                }
+            }
+            yield return 0;
+        } while (status == BleApi.ScanStatus.AVAILABLE || status == BleApi.ScanStatus.PROCESSING);
+    }
+
     void read_subscribe()
     {
         Debug.Log("Subscribe...");
@@ -179,35 +300,38 @@ public class FTMS_IndoorBike
         isSubscribed = true;
     }
 
+    void read_hrm_subscribe()
+    {
+        Debug.Log("Subscribe HRM...");
+        BleApi.SubscribeCharacteristic_Read(selectedHRMDeviceId, selectedHRMServiceId, selectedHRMCharacteristicId, false);
+        isHRMSubscribed = true;
+    }
 
     public void quit()
     {
         BleApi.Quit();
     }
 
-
-    // Update is called once per frame
     public void Update()
     {
-
-
         if (isSubscribed)
         {
+            BleApi.BLEData res = new BleApi.BLEData
+            {
+                buf = new byte[512] // Ensure the buffer is initialized
+            };
 
-            BleApi.BLEData res = new BleApi.BLEData();
             while (BleApi.PollData(out res, false))
             {
-                {
-                    has_speed = false;
-                    has_average_speed = false;
-                    has_rpm = false;
-                    has_average_rpm = false;
-                    has_distance = false;
-                    has_resistance = false;
-                    has_power = false;
-                    has_average_power = false;
-                    has_expended_energy = false;
-                }
+                has_speed = false;
+                has_average_speed = false;
+                has_rpm = false;
+                has_average_rpm = false;
+                has_distance = false;
+                has_resistance = false;
+                has_power = false;
+                has_average_power = false;
+                has_expended_energy = false;
 
                 output = String.Empty;
                 int index = 0;
@@ -218,61 +342,58 @@ public class FTMS_IndoorBike
                     has_speed = true;
                     float value = (float)BitConverter.ToUInt16(res.buf, index);
                     speed = (value * 1.0f) / 100.0f;
-                    output += "Speed: " + speed + "\n";
+                    output += "Speed: " + speed + "\\n";
                     index += 2;
                 }
                 if ((flags & 2) > 0)
                 {
-                    //??
                     has_average_speed = true;
                     average_speed = BitConverter.ToUInt16(res.buf, index);
-                    output += "Average Speed: " + average_speed + "\n";
+                    output += "Average Speed: " + average_speed + "\\n";
                     index += 2;
                 }
                 if ((flags & 4) > 0)
                 {
                     rpm = (BitConverter.ToUInt16(res.buf, index) * 1.0f) / 2.0f;
-                    output += "RPM: (rev/min): " + rpm + "\n";
+                    output += "RPM: (rev/min): " + rpm + "\\n";
                     index += 2;
                 }
                 if ((flags & 8) > 0)
                 {
                     average_rpm = (BitConverter.ToUInt16(res.buf, index) * 1.0f) / 2.0f;
-                    output += "Average RPM: " + average_rpm + "\n";
+                    output += "Average RPM: " + average_rpm + "\\n";
                     index += 2;
                 }
                 if ((flags & 16) > 0)
                 {
-                    distance = BitConverter.ToUInt16(res.buf, index); // ?????s
-                    output += "Distance (meter): " + distance + "\n";
+                    distance = BitConverter.ToUInt16(res.buf, index); // ????
+                    output += "Distance (meter): " + distance + "\\n";
                     index += 2;
                 }
                 if ((flags & 32) > 0)
                 {
                     resistance = BitConverter.ToInt16(res.buf, index);
-                    output += "Resistance: " + resistance + "\n";
+                    output += "Resistance: " + resistance + "\\n";
                     index += 2;
                 }
                 if ((flags & 64) > 0)
                 {
                     power = BitConverter.ToInt16(res.buf, index);
-                    output += "Power (Watt): " + power + "\n";
+                    output += "Power (Watt): " + power + "\\n";
                     index += 2;
                 }
                 if ((flags & 128) > 0)
                 {
                     average_power = BitConverter.ToInt16(res.buf, index);
-                    output += "AveragePower: " + average_power + "\n";
+                    output += "AveragePower: " + average_power + "\\n";
                     index += 2;
                 }
                 if ((flags & 256) > 0)
                 {
                     expended_energy = BitConverter.ToUInt16(res.buf, index);
-                    output += "ExpendedEnergy: " + expended_energy + "\n";
+                    output += "ExpendedEnergy: " + expended_energy + "\\n";
                     index += 2;
                 }
-                
-                //output += "Resistance: " + sended_resistance + "\n";
             }
 
             // log potential errors
@@ -285,7 +406,38 @@ public class FTMS_IndoorBike
             }
         }
 
+        if (isHRMSubscribed)
+        {
+            BleApi.BLEData res = new BleApi.BLEData
+            {
+                buf = new byte[512] // Ensure the buffer is initialized
+            };
 
+            while (BleApi.PollData(out res, false))
+            {
+                has_heart_rate = false;
+
+                hrm_output = String.Empty;
+                int index = 0;
+                int flags = BitConverter.ToUInt16(res.buf, index);
+                index += 2;
+                if ((flags & 1) == 1)
+                {
+                    has_heart_rate = true;
+                    heart_rate = (int)res.buf[index];
+                    hrm_output += "Heart Rate: " + heart_rate + "\\n";
+                }
+            }
+
+            // log potential errors
+            BleApi.ErrorMessage res_err = new BleApi.ErrorMessage();
+            BleApi.GetError(out res_err);
+            if (lastError != res_err.msg)
+            {
+                Debug.LogError(res_err.msg);
+                lastError = res_err.msg;
+            }
+        }
     }
 
     private byte[] Convert16(string strText)
@@ -301,18 +453,17 @@ public class FTMS_IndoorBike
 
     public void Write(string msg)
     {
-        
         byte[] payload22 = Convert16(msg);
-        BleApi.BLEData data = new BleApi.BLEData();
-        data.buf = new byte[512];
-        data.size = (short)payload22.Length;
-        data.deviceId = selectedDeviceId;
-        data.serviceUuid = selectedServiceId;
-        data.characteristicUuid = write_characteristic;
-        for (int i = 0; i < payload22.Length; i++)
+        BleApi.BLEData data = new BleApi.BLEData
         {
-            data.buf[i] = payload22[i];
-        }
+            buf = new byte[512],
+            size = (short)payload22.Length,
+            deviceId = selectedDeviceId,
+            serviceUuid = selectedServiceId,
+            characteristicUuid = write_characteristic
+        };
+
+        Array.Copy(payload22, data.buf, payload22.Length);
         BleApi.SendData(in data, false);
     }
 
@@ -320,15 +471,21 @@ public class FTMS_IndoorBike
     {
         write_resistance(Mathf.FloorToInt(val));
     }
+
     public void write_resistance(int val)
     {
         if (Time.time - last_write_time < 0.1f)
         {
             return;
         }
-        else {
-            last_write_time = Time.time;
+        if (sended_resistance == val)
+        {
+            Debug.Log("Resistance value is the same as before; no need to resend.");
+            return;
         }
+
+        last_write_time = Time.time;
+        sended_resistance = val;
 
         Debug.Log("write resistance: " + val);
 
@@ -337,14 +494,15 @@ public class FTMS_IndoorBike
         byte resistance1 = Convert.ToByte(val % 256);
         byte resistance2 = Convert.ToByte(val / 256);
         byte[] payload = { 0x11, 0x00, 0x00, resistance1, resistance2, 0x00, 0x00 };
-        BleApi.BLEData data = new BleApi.BLEData();
-        data.buf = new byte[512];
-        data.deviceId = selectedDeviceId;
-        data.serviceUuid = selectedServiceId;
-        data.characteristicUuid = write_characteristic;
-        for (int i = 0; i < payload.Length; i++){
-            data.buf[i] = payload[i];
-        }
+        BleApi.BLEData data = new BleApi.BLEData
+        {
+            buf = new byte[512],
+            deviceId = selectedDeviceId,
+            serviceUuid = selectedServiceId,
+            characteristicUuid = write_characteristic
+        };
+
+        Array.Copy(payload, data.buf, payload.Length);
         data.size = (short)payload.Length;
         BleApi.SendData(in data, false);
     }

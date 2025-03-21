@@ -14876,8 +14876,6 @@ MonoBehaviour:
   directory: 
   fileName: performance_log
   player: {fileID: 8467879733964276341}
-  exerciseBikeScript: {fileID: 1663485189}
-  heartrateScript: {fileID: 439580148}
   currentPower: 0
   currentCadence: 0
   currentSpeed: 0
@@ -23275,13 +23273,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   connected: 0
-  infoText: 
+  info: 
+  hrm_info: 
   resistance_show: {fileID: 341582848}
-  dataManager: {fileID: 1025390898}
   device_name: WattbikePT28004316
   service_id: '{00001826-0000-1000-8000-00805f9b34fb}'
   read_characteristic: '{00002ad2-0000-1000-8000-00805f9b34fb}'
   write_characteristic: '{00002ad9-0000-1000-8000-00805f9b34fb}'
+  hrm_device_name: Polar H10 D7E96D26
+  hrm_service_id: '{0000180d-0000-1000-8000-00805f9b34fb}'
+  hrm_read_characteristic: '{00002a37-0000-1000-8000-00805f9b34fb}'
 --- !u!4 &1663485190
 Transform:
   m_ObjectHideFlags: 0
@@ -23304,7 +23305,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1663485188}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e9a36b8164a1eab4c8b991ff75e11769, type: 3}
   m_Name: 
@@ -25655,7 +25656,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: -2.3509887e-38, y: NaN, z: NaN, w: -8.3042047e-19}
+  m_BoundingSphereOverride: {x: 0, y: -1.4401498e+30, z: 7.23e-43, w: 8e-44}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
