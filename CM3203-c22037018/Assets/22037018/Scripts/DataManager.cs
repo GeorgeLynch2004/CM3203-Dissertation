@@ -10,6 +10,7 @@ using Unity.VisualScripting;
 using Unity.XR.CoreUtils.Datums;
 using System.Linq;
 using Unity.Mathematics;
+using TMPro;
 
 public class DataManager : MonoBehaviour
 {
@@ -24,6 +25,9 @@ public class DataManager : MonoBehaviour
     [Header("Player Reference")]
     [SerializeField] private BicycleAI player;
 
+    [Header("Environment Parent")]
+    [SerializeField] private GameObject environmentParent;
+    [SerializeField] private TMP_InputField participantIDInputUI;
 
     [Header("Performance Metrics")]
     [SerializeField] public float currentPower; 
@@ -37,7 +41,7 @@ public class DataManager : MonoBehaviour
     [SerializeField] public bool dataLoggingFlag;
     private bool dataCoroutineRunning;
     private bool listeningForPowerOutput;
-    [SerializeField] public int participantID;
+    [SerializeField] public int participantID = -2;
     [SerializeField] public float participantWeight;
     [SerializeField] public ScenarioMode scenarioMode;
     [SerializeField] public DateTime dateAndTime;
@@ -80,6 +84,7 @@ public class DataManager : MonoBehaviour
         listeningForPowerOutput = false;
         dataLoggingFlag = false;
         currentDurationData = 0;
+        participantID = -2;
 
         fileDirectory = Path.Combine(Application.persistentDataPath, "Performance Logs");
 
@@ -90,6 +95,7 @@ public class DataManager : MonoBehaviour
 
 
         StartCoroutine(ListenForPowerOutputStart());
+        StartCoroutine(ListenForParticipantIDInput());
     }
 
     // Update is called once per frame
@@ -111,6 +117,35 @@ public class DataManager : MonoBehaviour
 
         // Update the HUD
         UpdateHUD();
+    }
+
+    private IEnumerator ListenForParticipantIDInput()
+    {
+        while (participantID == -2)
+        {
+            environmentParent.SetActive(false);
+            participantIDInputUI.gameObject.SetActive(true);
+            // Wait for the participant ID to be set
+            yield return null;
+        }
+
+        // Participant ID has been set, hide the input UI
+        participantIDInputUI.gameObject.SetActive(false);
+        environmentParent.SetActive(true);
+
+        yield return null;
+    }
+
+    public void UpdateParticipantID()
+    {
+        if (int.TryParse(participantIDInputUI.text, out int parsedID))
+        {
+            participantID = parsedID;
+        }
+        else
+        {
+            Debug.LogError("Invalid Participant ID entered.");
+        }
     }
 
 
@@ -226,23 +261,6 @@ public class DataManager : MonoBehaviour
         competitiveGraphs.RunDataVisualisationScript(Path.Combine(Application.persistentDataPath, "DataVis.py"), Path.Combine(performance_logs_folder, $"{fileName}_{ScenarioMode.Competitive}_{participantID}.csv"), Path.Combine(Application.persistentDataPath, $"{fileName}_{ScenarioMode.Competitive}_{participantID}.csv"));
     }
 
-    private IEnumerator UploadPopUpMessage(string msg, float timeframe)
-    {
-        // Wait until the current message is cleared (messagePopUp becomes "")
-        while (!string.IsNullOrEmpty(messagePopUp))
-        {
-            yield return null; // Wait for the current message to be cleared
-        }
-
-        // Set the new message to be displayed
-        messagePopUp = msg;
-
-        // Wait for the specified timeframe
-        yield return new WaitForSeconds(timeframe);
-
-        // Clear the message after the timeframe has elapsed
-        messagePopUp = "";
-    }
 
     private void CalculateFileFooter()
     {

@@ -132,6 +132,10 @@ public class BicycleAI : MonoBehaviour
         {
             SetSmoothedDestination(target.position);
         }
+        if (aiType == AIType.Player)
+        {
+            UpdatePace(DataManager.Instance.currentSpeed);
+        }
     }
 
     public void DraftTeammate(Transform target)

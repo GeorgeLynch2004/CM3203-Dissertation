@@ -223,6 +223,10 @@ public class SessionManager : MonoBehaviour
             {
                 if (lerping == false) MoveToPose(XROrigin.transform, spawnPose, true);
             }
+            else if (scenarioMode == ScenarioMode.Baseline && XROrigin.transform.GetWorldPose() != bikePose.GetWorldPose())
+            {
+                if (lerping == false) MoveToPose(XROrigin.transform, bikePose, true);
+            }
             else if (scenarioMode == ScenarioMode.Cooperative && XROrigin.transform.GetWorldPose() != bikePose.GetWorldPose())
             {
                 if (lerping == false)
