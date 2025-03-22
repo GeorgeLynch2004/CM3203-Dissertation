@@ -23253,6 +23253,7 @@ GameObject:
   - component: {fileID: 1663485190}
   - component: {fileID: 1663485189}
   - component: {fileID: 1663485191}
+  - component: {fileID: 1663485192}
   m_Layer: 0
   m_Name: FTMS_UI
   m_TagString: Untagged
@@ -23316,6 +23317,22 @@ MonoBehaviour:
   device_name: Polar H10 D7E96D26
   service_id: '{0000180d-0000-1000-8000-00805f9b34fb}'
   read_characteristic: '{00002a37-0000-1000-8000-00805f9b34fb}'
+--- !u!114 &1663485192
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1663485188}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed9484aa6c8fe704a9b00449f7f64e15, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  port: 5052
+  startRecieving: 1
+  printToConsole: 0
+  data: 
 --- !u!1 &1668110084
 GameObject:
   m_ObjectHideFlags: 0
@@ -25656,7 +25673,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: -1.4401498e+30, z: 7.23e-43, w: 8e-44}
+  m_BoundingSphereOverride: {x: 0, y: NaN, z: NaN, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
