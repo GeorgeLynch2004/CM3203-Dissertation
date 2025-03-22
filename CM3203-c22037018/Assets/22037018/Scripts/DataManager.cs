@@ -88,8 +88,6 @@ public class DataManager : MonoBehaviour
             Directory.CreateDirectory(fileDirectory);
         }
 
-        // establish device connections
-        EstablishDeviceConnections();
 
         StartCoroutine(ListenForPowerOutputStart());
     }
@@ -113,11 +111,6 @@ public class DataManager : MonoBehaviour
 
         // Update the HUD
         UpdateHUD();
-    }
-
-    private void EstablishDeviceConnections()
-    {
-        FTMS_UI.Instance.connect();
     }
 
 
@@ -394,63 +387,34 @@ public class DataManager : MonoBehaviour
         }
     }
 
-    public void ProcessDataFromBike(string info)
+    public void ProcessDataFromPython(string output)
     {
-        if (info.Length == 0) return;
+        string[] vals = ExtractNumbers(output);
 
-        string[] strings = info.Split(new char[] {',', ' '}, System.StringSplitOptions.RemoveEmptyEntries);
-
-        for (int i = 0; i < strings.Length; i++)
-        {
-            strings[i] = Regex.Replace(strings[i], @"[^\d.]", "");
-
-            if (i == 3) 
-            {
-                currentCadence = float.Parse(strings[i].Replace("\n", ""));
-            }
-            if (i == 5)
-            {
-                currentPower = float.Parse(strings[i]);
-            }
-
-            
-        }
-
-        float rawPower = float.Parse(strings[5]);
-        float newSpeed = 0;
-
-        // Assuming the desired acceleration value is given
-        float acceleration = player.desiredAcceleration; // Adjust as needed for smooth acceleration/deceleration
-
-        // Calculate the target speed using the existing method
-        float targetSpeed = CalculateSpeed(rawPower, dragCoefficient, frontalArea, rollingResistanceCoefficient, bikeMass);
-
-        // Access the NavMeshAgent component
-        NavMeshAgent navMeshAgent = player.GetComponent<NavMeshAgent>();
-
-        
-
-        // Smooth the transition using a simple linear interpolation (lerp)
-        float speedDifference = targetSpeed - navMeshAgent.speed;
-
-        // Applying acceleration to gradually change the speed
-        newSpeed = Mathf.Lerp(navMeshAgent.speed, targetSpeed, acceleration * Time.deltaTime);
-
-        // Ensure speed is clamped to avoid going below zero
-        newSpeed = Mathf.Max(0, newSpeed);
-
-        currentSpeed = newSpeed;     
-
-        // Update the player's pace with the new smooth speed
-        player.UpdatePace(currentSpeed);
-
-        
-
+        currentHeartRate = int.Parse(vals[0]);
+        currentPower = int.Parse(vals[3]);
+        currentSpeed = CalculateSpeed(currentPower, dragCoefficient, frontalArea, rollingResistanceCoefficient, bikeMass);
+        currentCadence = int.Parse(vals[2]);
     }
 
-    public void ProcessDataFromHR(string info)
+    private static string[] ExtractNumbers(string input)
     {
-        currentHeartRate = float.Parse(info);
+        // Define the regex pattern to match numbers (integer or floating-point).
+        Regex regex = new Regex(@"\d+");
+
+        // Find all matches in the input string
+        MatchCollection matches = regex.Matches(input);
+
+        // Create an array to hold the matched numbers
+        string[] result = new string[matches.Count];
+
+        // Extract each matched number and store it in the result array
+        for (int i = 0; i < matches.Count; i++)
+        {
+            result[i] = matches[i].Value;
+        }
+
+        return result;
     }
 
     public float CalculateSpeed(float powerOutput, float dragCoefficient, float frontalArea, float rollingResistanceCoefficient, float bikeMass)

@@ -3510,7 +3510,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1663485189}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FTMS_UI, Assembly-CSharp
         m_MethodName: connect
         m_Mode: 1
@@ -5842,18 +5842,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29140d2f98d53e8459ac8ebd3fc7bd9c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  H10_DEVICE_NAME: Polar H10 D7E96D26
-  HEART_RATE_SERVICE_UUID: '{0000180d-0000-1000-8000-00805f9b34fb}'
-  HEART_RATE_MEASUREMENT_CHARACTERISTIC_UUID: '{00002A37-0000-1000-8000-00805f9b34fb}'
-  selectedDeviceId: 
-  selectedServiceId: 
-  selectedCharacteristicId: 
-  isConnected: 0
-  isSubscribed: 0
-  heartRate: 0
-  heartRateOutput: 
-  dataManager: {fileID: 1025390898}
-  colourIndicator: {fileID: 0}
 --- !u!4 &439580149
 Transform:
   m_ObjectHideFlags: 0
@@ -9473,7 +9461,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1663485189}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FTMS_UI, Assembly-CSharp
         m_MethodName: change_device_name
         m_Mode: 0
@@ -13776,7 +13764,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1663485189}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FTMS_UI, Assembly-CSharp
         m_MethodName: change_read_characteristic
         m_Mode: 0
@@ -17842,7 +17830,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1663485189}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FTMS_UI, Assembly-CSharp
         m_MethodName: change_service_id
         m_Mode: 0
@@ -21216,7 +21204,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1663485189}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FTMS_UI, Assembly-CSharp
         m_MethodName: connect
         m_Mode: 1
@@ -23242,7 +23230,7 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1004097911450439916, guid: 56686f82f64b0af4688a89676403a500, type: 3}
   m_PrefabInstance: {fileID: 1640271314}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1663485188
+--- !u!1 &1645502480
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -23250,89 +23238,46 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1663485190}
-  - component: {fileID: 1663485189}
-  - component: {fileID: 1663485191}
-  - component: {fileID: 1663485192}
+  - component: {fileID: 1645502481}
+  - component: {fileID: 1645502482}
   m_Layer: 0
-  m_Name: FTMS_UI
+  m_Name: WebSocketClient
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1663485189
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1663485188}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3cef2b29ba24c88438638eb67b255d93, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  connected: 0
-  info: 
-  hrm_info: 
-  resistance_show: {fileID: 341582848}
-  device_name: WattbikePT28004316
-  service_id: '{00001826-0000-1000-8000-00805f9b34fb}'
-  read_characteristic: '{00002ad2-0000-1000-8000-00805f9b34fb}'
-  write_characteristic: '{00002ad9-0000-1000-8000-00805f9b34fb}'
-  hrm_device_name: Polar H10 D7E96D26
-  hrm_service_id: '{0000180d-0000-1000-8000-00805f9b34fb}'
-  hrm_read_characteristic: '{00002a37-0000-1000-8000-00805f9b34fb}'
---- !u!4 &1663485190
+--- !u!4 &1645502481
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1663485188}
+  m_GameObject: {fileID: 1645502480}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 628.6373, y: 267.6796, z: 682.1694}
+  m_LocalPosition: {x: -0.052102696, y: 1.9904972, z: -1.9474895}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1663485191
+--- !u!114 &1645502482
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1663485188}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e9a36b8164a1eab4c8b991ff75e11769, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  connected: 0
-  dataManager: {fileID: 1025390898}
-  infoText: 
-  device_name: Polar H10 D7E96D26
-  service_id: '{0000180d-0000-1000-8000-00805f9b34fb}'
-  read_characteristic: '{00002a37-0000-1000-8000-00805f9b34fb}'
---- !u!114 &1663485192
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1663485188}
+  m_GameObject: {fileID: 1645502480}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ed9484aa6c8fe704a9b00449f7f64e15, type: 3}
+  m_Script: {fileID: 11500000, guid: bad52db2809d8fe4285deccc77fd8ba0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  port: 5052
-  startRecieving: 1
-  printToConsole: 0
-  data: 
+  output: 
+  pyInstallPath: python
+  pyScriptPath: '"C:\Users\c22037018\Desktop\Dissertation\CM3203-Dissertation\CM3203-c22037018\Assets\22037018\Scripts\Bluetooth
+    Experimental Code\websocket.py"'
 --- !u!1 &1668110084
 GameObject:
   m_ObjectHideFlags: 0
@@ -25673,7 +25618,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: NaN, z: NaN, w: 0}
+  m_BoundingSphereOverride: {x: 4.5905e-41, y: NaN, z: 6.42e-43, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
@@ -26868,7 +26813,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1663485189}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FTMS_UI, Assembly-CSharp
         m_MethodName: write_resistance
         m_Mode: 0
@@ -27042,7 +26987,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1663485189}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: FTMS_UI, Assembly-CSharp
         m_MethodName: change_write_characteristic
         m_Mode: 0
@@ -44143,7 +44088,7 @@ SceneRoots:
   - {fileID: 1282024910}
   - {fileID: 1681752737}
   - {fileID: 21944776}
-  - {fileID: 1663485190}
   - {fileID: 439580149}
   - {fileID: 1786341937}
   - {fileID: 6536329968120432688}
+  - {fileID: 1645502481}
