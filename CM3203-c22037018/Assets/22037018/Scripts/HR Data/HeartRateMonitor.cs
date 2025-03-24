@@ -220,7 +220,8 @@ public class HeartRateMonitor
                     heartRate = res.buf[index++];
                 }
                 has_heartRate = true;
-                output += "Heart Rate: " + heartRate + " bpm\n";
+                //output += "Heart Rate: " + heartRate + " bpm\n";
+                output += heartRate;
 
                 // Skip Energy Expended field if present
                 if (energyExpendedPresent)
@@ -236,7 +237,7 @@ public class HeartRateMonitor
                     int remainingBytes = res.size - index;
                     int rrIntervalCount = remainingBytes / 2;
 
-                    output += "RR Intervals: ";
+                    //output += "RR Intervals: ";
                     for (int i = 0; i < rrIntervalCount; i++)
                     {
                         int rrInterval = BitConverter.ToUInt16(res.buf, index);
@@ -244,9 +245,9 @@ public class HeartRateMonitor
                         // RR intervals are in 1/1024 second units, convert to milliseconds
                         int rrIntervalMs = (int)Math.Round(rrInterval * 1000.0 / 1024.0);
                         rr_intervals.Add(rrIntervalMs);
-                        output += rrIntervalMs + "ms ";
+                        //output += rrIntervalMs + "ms ";
                     }
-                    output += "\n";
+                    //output += "\n";
                 }
             }
 

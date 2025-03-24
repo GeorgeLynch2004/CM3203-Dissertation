@@ -117,7 +117,7 @@ async def output_data():
         }
         
         message = json.dumps(message_data)
-        print(f"------------------------\nHeart Rate: {message_data['heart_rate']}\nSpeed: {message_data['speed']}\nRPM: {message_data['rpm']}\nPower: {message_data['power']}")
+        print(f"------------------------\nSpeed: {message_data['speed']}\nRPM: {message_data['rpm']}\nPower: {message_data['power']}")
 
         # Send data to Unity via WebSocket
         if active_websocket:
@@ -176,7 +176,6 @@ async def main():
     print(f"WebSocket Server running on {WS_SERVER}")
 
     await asyncio.gather(
-        connect_to_device(HR_DEVICE_NAME, HR_SERVICE_UUID, HR_CHARACTERISTIC_UUID, heart_rate_callback),
         connect_to_device(EB_DEVICE_NAME, EB_SERVICE_UUID, EB_MEASUREMENT_CHARACTERISTIC_UUID, exercise_bike_callback),
         server.wait_closed()
     )

@@ -409,16 +409,25 @@ public class DataManager : MonoBehaviour
     {
         string[] vals = ExtractNumbers(output);
 
-        currentHeartRate = int.Parse(vals[0]);
-        currentPower = int.Parse(vals[3]);
+        for (int i = 0; i < vals.Length; i++)
+        {
+            Debug.Log(vals[i]);
+        }
+
+        currentPower = int.Parse(vals[2]);
         currentSpeed = CalculateSpeed(currentPower, dragCoefficient, frontalArea, rollingResistanceCoefficient, bikeMass);
-        currentCadence = int.Parse(vals[2]);
+        currentCadence = float.Parse(vals[1]);
+    }
+
+    public void ProcessHRData(int hr)
+    {
+        currentHeartRate = hr;
     }
 
     private static string[] ExtractNumbers(string input)
     {
-        // Define the regex pattern to match numbers (integer or floating-point).
-        Regex regex = new Regex(@"\d+");
+        // Define the regex pattern to match integer or floating-point numbers.
+        Regex regex = new Regex(@"\d+(\.\d+)?");
 
         // Find all matches in the input string
         MatchCollection matches = regex.Matches(input);
@@ -434,6 +443,7 @@ public class DataManager : MonoBehaviour
 
         return result;
     }
+
 
     public float CalculateSpeed(float powerOutput, float dragCoefficient, float frontalArea, float rollingResistanceCoefficient, float bikeMass)
     {

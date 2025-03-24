@@ -7,7 +7,6 @@ public class HeartRateMonitor_UI : MonoBehaviour
 {
     public bool connected = false;
     public HeartRateMonitor connector;
-    [SerializeField] private DataManager dataManager;
     [SerializeField] private string infoText;
 
     // Default values for heart rate monitor - can be changed in inspector
@@ -17,7 +16,7 @@ public class HeartRateMonitor_UI : MonoBehaviour
 
     private void Start()
     {
-        dataManager = FindObjectOfType<DataManager>();
+        BeginConnection();
     }
 
     public void BeginConnection()
@@ -45,7 +44,9 @@ public class HeartRateMonitor_UI : MonoBehaviour
 
             if (connector.has_heartRate)
             {
-
+                int res;
+                int.TryParse(infoText, out res);
+                DataManager.Instance.ProcessHRData(res);
             }
         }
 
