@@ -23979,7 +23979,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1681752737}
-  - component: {fileID: 1681752736}
   m_Layer: 7
   m_Name: XR Interaction Hands Setup
   m_TagString: Untagged
@@ -23987,21 +23986,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1681752736
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1681752735}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 75e17354268e6804b87fd6fa4a425512, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  smoothingSpeed: 5
-  desiredRotation: {x: 0, y: 0, z: 0, w: 0}
-  bikeParent: {fileID: 1461383703038184380}
 --- !u!4 &1681752737
 Transform:
   m_ObjectHideFlags: 0
@@ -26033,7 +26017,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 5.38e-43, y: NaN, z: NaN, w: 1.119753e+14}
+  m_BoundingSphereOverride: {x: 0, y: NaN, z: NaN, w: 0}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
@@ -39597,6 +39581,7 @@ GameObject:
   - component: {fileID: 1444891696677253121}
   - component: {fileID: 8311842704415269541}
   - component: {fileID: 2334347196951644693}
+  - component: {fileID: 8467879733964276342}
   m_Layer: 7
   m_Name: Bicycle (Player)
   m_TagString: AI
@@ -43244,7 +43229,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5697096955491199364}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 96a7626e4de741244bbcd3a6e9cb0ce8, type: 3}
   m_Name: 
@@ -43611,6 +43596,20 @@ MonoBehaviour:
     m_Bits: 128
   detectionDistance: 8
   smoothingFactor: 15
+--- !u!114 &8467879733964276342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5697096955491199364}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ca7b155bad940940a7830c49f18d842, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  agent: {fileID: 0}
+  baseRotationSpeed: 5
 --- !u!114 &8494519229821526478
 MonoBehaviour:
   m_ObjectHideFlags: 0

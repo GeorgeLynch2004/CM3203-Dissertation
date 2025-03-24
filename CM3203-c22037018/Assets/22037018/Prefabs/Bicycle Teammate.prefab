@@ -2023,10 +2023,10 @@ GameObject:
   m_Component:
   - component: {fileID: 1075008502070649802}
   - component: {fileID: 6239280319374562747}
-  - component: {fileID: 7331866814257108228}
   - component: {fileID: 7617224864713327848}
   - component: {fileID: 9085759033496751680}
   - component: {fileID: 2099095457946488570}
+  - component: {fileID: 7182793439739297310}
   m_Layer: 7
   m_Name: Bicycle Teammate
   m_TagString: AI
@@ -2082,27 +2082,6 @@ MonoBehaviour:
     m_Bits: 128
   detectionDistance: 8
   smoothingFactor: 15
---- !u!114 &7331866814257108228
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6340846890396235256}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 96a7626e4de741244bbcd3a6e9cb0ce8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  raycastDistance: 10
-  leftOrigin: {fileID: 5848415613948760339}
-  rightOrigin: {fileID: 1375660026026296313}
-  layerMask:
-    serializedVersion: 2
-    m_Bits: 64
-  currentLeanAngle: 0
-  speedThreshold: 12
-  lerpTime: 0.5
 --- !u!195 &7617224864713327848
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -2173,6 +2152,23 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.1
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &7182793439739297310
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6340846890396235256}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ca7b155bad940940a7830c49f18d842, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  agent: {fileID: 0}
+  baseRotationSpeed: 5
+  minRotationSpeed: 1
+  lookAheadDistance: 2
+  cornerAnticipation: 5
 --- !u!1 &6371574676310156648
 GameObject:
   m_ObjectHideFlags: 0

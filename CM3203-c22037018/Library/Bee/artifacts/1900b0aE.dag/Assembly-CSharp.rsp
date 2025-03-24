@@ -461,6 +461,7 @@
 -analyzer:"C:/Program Files/Unity/Hub/Editor/2022.3.13f1/Editor/Data/Tools/Unity.SourceGenerators/Unity.Properties.SourceGenerator.dll"
 -analyzer:"C:/Program Files/Unity/Hub/Editor/2022.3.13f1/Editor/Data/Tools/Unity.SourceGenerators/Unity.SourceGenerators.dll"
 "Assets/22037018/Scripts/Bicycle/BicycleAI.cs"
+"Assets/22037018/Scripts/Bicycle/BicycleSmoothRotation.cs"
 "Assets/22037018/Scripts/Bicycle/BikeDetectionCollider.cs"
 "Assets/22037018/Scripts/Bicycle/ChaseCollider.cs"
 "Assets/22037018/Scripts/Bicycle/SlopeRotation.cs"
