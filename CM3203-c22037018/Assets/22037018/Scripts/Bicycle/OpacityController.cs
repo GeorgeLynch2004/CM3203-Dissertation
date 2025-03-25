@@ -24,9 +24,16 @@ public class OpacityController : MonoBehaviour
         float alpha = Mathf.Clamp01(distance / maxDistance);
         for (int i = 0; i < renderers.Length; i++)
         {
-            Color newColor = originalColors[i];
-            newColor.a = alpha;
-            renderers[i].material.color = newColor;
+            if (renderers[i].material.HasProperty("_Color"))
+            {
+                Color newColor = originalColors[i];
+                newColor.a = alpha;
+                renderers[i].material.color = newColor;
+            }
+            else
+            {
+                renderers[i].enabled = distance > maxDistance;
+            }
         }
     }
 }

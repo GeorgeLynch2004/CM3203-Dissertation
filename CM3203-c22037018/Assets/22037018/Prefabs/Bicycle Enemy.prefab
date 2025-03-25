@@ -884,7 +884,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 0}
-  maxDistance: 3
+  maxDistance: 1
+  renderers: []
+  originalColors: []
 --- !u!114 &480958152312130393
 MonoBehaviour:
   m_ObjectHideFlags: 0
