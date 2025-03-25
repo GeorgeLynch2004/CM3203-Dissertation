@@ -85,7 +85,6 @@ public class WebSocketClient : MonoBehaviour
                 int expendedEnergy = json["expended_energy"]?.ToObject<int>() ?? 0;
                 // Update the output string
                 output = $"Speed: {speed:F1} km/h, RPM: {rpm:F1}, Power: {power} W";
-                UnityEngine.Debug.Log(output);
 
                 DataManager.Instance.ProcessDataFromPython(output);
 

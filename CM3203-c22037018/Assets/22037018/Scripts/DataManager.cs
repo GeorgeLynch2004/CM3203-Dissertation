@@ -409,11 +409,6 @@ public class DataManager : MonoBehaviour
     {
         string[] vals = ExtractNumbers(output);
 
-        for (int i = 0; i < vals.Length; i++)
-        {
-            Debug.Log(vals[i]);
-        }
-
         currentPower = int.Parse(vals[2]);
         currentSpeed = CalculateSpeed(currentPower, dragCoefficient, frontalArea, rollingResistanceCoefficient, bikeMass);
         currentCadence = float.Parse(vals[1]);

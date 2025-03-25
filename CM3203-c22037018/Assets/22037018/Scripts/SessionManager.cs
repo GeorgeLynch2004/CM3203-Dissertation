@@ -103,7 +103,7 @@ public class SessionManager : MonoBehaviour
         }
         if (scenarioMode == ScenarioMode.Competitive && activeAI.Count > 1)
         {
-            raceCoroutine = StartCoroutine(RaceCoroutine(aiPerformanceVariations, DataManager.Instance.GenerateWorkoutProfiles(DataManager.Instance.participantID, Path.Combine(Application.dataPath, "Performance Logs"))));
+            raceCoroutine = StartCoroutine(RaceCoroutine(aiPerformanceVariations, DataManager.Instance.GenerateWorkoutProfiles(DataManager.Instance.participantID, Path.Combine(Application.persistentDataPath, "Performance Logs"))));
         }
     }
 
@@ -193,6 +193,7 @@ public class SessionManager : MonoBehaviour
     public void SetUndecidedMode()
     {
         scenarioMode = ScenarioMode.Undecided;
+        DataManager.Instance.dataLoggingFlag = false;
     }
 
     public void SetBaselineMode()
@@ -390,11 +391,26 @@ public class SessionManager : MonoBehaviour
             powerData.InsertRange(0, powerGracePeriod);
             speedData.InsertRange(0, speedGracePeriod);
 
-            while (second < speedData.Count)
+            float powerLength = powerData.Count;
+            float heartrateLength = heartrateData.Count;
+            float speedLength = speedData.Count;
+
+            float shortestLength = Mathf.Min(powerLength, heartrateLength, speedLength); // used to prevent index out of bounds
+
+            while (second < shortestLength)
             {
                 float power = powerData[second];
                 float heartrate = heartrateData[second];
                 float speed = speedData[second];
+
+                // Validate power data
+                if (power >= 1000)
+                {
+                    Debug.LogWarning($"Invalid power data at second {second}: {power}");
+                    second++;
+                    yield return new WaitForSeconds(1f);
+                    continue;
+                }
 
                 for (int i = 0; i < enemies.Count; i++)
                 {
@@ -430,16 +446,17 @@ public class SessionManager : MonoBehaviour
                     }
 
                     // Calculate speed based on adjusted power
-                    //float speed = dataManager.CalculateSpeed(adjustedPower, 0.88f, 0.5f, 0.004f, 75f);
+                    float finalSpeed = DataManager.Instance.CalculateSpeed(adjustedPower, 0.88f, 0.5f, 0.004f, 75f);
 
                     // Enforce a minimum speed to avoid freezing or tiny updates
                     //float minSpeed = 0.1f;  // Minimum speed threshold
                     //speed = Mathf.Max(speed, minSpeed);
 
                     // Only update pace if speed is above the minimum threshold
-                    if (speed > 1f) // Avoid sending tiny speed updates
+                    if (finalSpeed > 1f) // Avoid sending tiny speed updates
                     {
-                        enemies[i].UpdatePace(speed);
+                        enemies[i].UpdatePace(finalSpeed);
+                        Debug.Log($"AI: {enemies[i]}, has a bias of: {performanceVariations[i]}, and had initial avg power of {power}, which turned into {adjustedPower}.");
                     }
                     else
                     {
@@ -453,8 +470,24 @@ public class SessionManager : MonoBehaviour
                 second++;
                 yield return new WaitForSeconds(1f);
             }
+
+            // When there is no more data to read, set AI speed to player's pace - 1 mph
+            while (true)
+            {
+                float playerSpeed = DataManager.Instance.currentSpeed;
+                float aiSpeed = Mathf.Max(playerSpeed - 1, 1); // Ensure AI speed is at least 1 mph
+
+                for (int i = 0; i < enemies.Count; i++)
+                {
+                    enemies[i].UpdatePace(aiSpeed);
+                }
+
+                yield return new WaitForSeconds(1f);
+            }
         }
     }
+
+
 
 
 

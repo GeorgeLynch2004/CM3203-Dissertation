@@ -98,11 +98,23 @@ public class BicycleAI : MonoBehaviour
         // Competitive Game Loop
         if (SessionManager.Instance.GetCurrentScenarioMode() == ScenarioMode.Competitive)
         {
-            // Permanently have the AI trained to the target on the map not an opponent as the goal is the same for all bikes: getting into first.
-            if (MapTargetPosition != null)
+            if (aiType == AIType.Competitor)
             {
-                TakePull(MapTargetPosition);
+                // Permanently have the AI trained to the target on the map not an opponent as the goal is the same for all bikes: getting into first.
+                if (MapTargetPosition != null)
+                {
+                    navmeshAgent.SetDestination(MapTargetPosition.position);
+                }
             }
+            else if (aiType == AIType.Player)
+            {
+                // Permanently have the AI trained to the target on the map not an opponent as the goal is the same for all bikes: getting into first.
+                if (MapTargetPosition != null)
+                {
+                    TakePull(MapTargetPosition);
+                }
+            }
+            
 
             // Code for plugging performance data to the ai in real-time handled in the session manager.
             

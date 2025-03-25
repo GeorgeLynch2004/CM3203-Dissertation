@@ -6533,7 +6533,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1004097911450439891, guid: 56686f82f64b0af4688a89676403a500, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: SetBaselineMode
+      value: ToggleMenus
       objectReference: {fileID: 0}
     - target: {fileID: 1004097911450439891, guid: 56686f82f64b0af4688a89676403a500, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
@@ -9580,20 +9580,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7d958af3bd59bd74e836ae3b9755304e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scenarioMode: 0
+  scenarioMode: 3
   resistanceProfile: 0
   cooperativePrefab: {fileID: 415262056100858537, guid: 2fe64764121a20648af2a8e2645f1e1d, type: 3}
   competitivePrefab: {fileID: 8406457841670237575, guid: 481d0da90a7037c4090d494a7537905e, type: 3}
-  menuParent: {fileID: 1537054384}
+  menuParent: {fileID: 213981915}
   XROrigin: {fileID: 1681752735}
   spawnPose: {fileID: 21944776}
   bikePose: {fileID: 8406324239571708140}
   activeAI: []
   pullTime: 10
   aiPerformanceVariations:
-  - 3
-  - 2
-  - 1
+  - 10
+  - 5
+  - -5
   warmupDuration: 0
   rampDuration: 60
   rampIncrement: 0.1
@@ -23486,7 +23486,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1004097911450439891, guid: 56686f82f64b0af4688a89676403a500, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: SetBaselineMode
+      value: SetUndecidedMode
       objectReference: {fileID: 0}
     - target: {fileID: 1004097911450439891, guid: 56686f82f64b0af4688a89676403a500, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
@@ -26017,7 +26017,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: NaN, z: NaN, w: 0}
+  m_BoundingSphereOverride: {x: 7.19e-43, y: NaN, z: NaN, w: 1.04119296e+9}
   m_UseBoundingSphereOverride: 0
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
@@ -43610,6 +43610,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   agent: {fileID: 0}
   baseRotationSpeed: 5
+  minRotationSpeed: 1
+  lookAheadDistance: 2
+  cornerAnticipation: 5
 --- !u!114 &8494519229821526478
 MonoBehaviour:
   m_ObjectHideFlags: 0
