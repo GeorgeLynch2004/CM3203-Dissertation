@@ -78,8 +78,12 @@ if __name__ == "__main__":
     df = load_data(csv_file_path)
     os.makedirs(output_dir, exist_ok=True)
     
-    plot_graph(df["ElapsedSeconds"], df["Power"], "Elapsed Time (seconds)", "Power (Watts)", "Power Over Time", "blue", os.path.join(output_dir, "power_graph.png"), 0, df["Power"].max())
-    plot_graph(df["ElapsedSeconds"], df["HeartRate"], "Elapsed Time (seconds)", "Heart Rate (BPM)", "Heart Rate Over Time", "red", os.path.join(output_dir, "heartrate_graph.png"), 0, None)
+    plot_graph(df["ElapsedSeconds"], 
+               df["Power"], "Elapsed Time (seconds)", "Power (Watts)", "Power Over Time", "blue", 
+               os.path.join(output_dir, "power_graph.png"), 0, df["Power"].max())
+    plot_graph(df["ElapsedSeconds"], 
+               df["HeartRate"], "Elapsed Time (seconds)", "Heart Rate (BPM)", "Heart Rate Over Time", "red", 
+               os.path.join(output_dir, "heartrate_graph.png"), 0, None)
     plot_combined(df, os.path.join(output_dir, "combined_graph.png"))
     
     print("Script completed successfully")
