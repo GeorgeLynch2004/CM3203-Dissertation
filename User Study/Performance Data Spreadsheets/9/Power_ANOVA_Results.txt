@@ -1,0 +1,15 @@
+ANOVA Results for Power:
+
+                     sum_sq     df         F    PR(>F)
+C(Condition)    1000.328801    2.0  0.654649  0.519854
+Residual      741863.035675  971.0       NaN       NaN
+
+Tukey HSD Results:
+     Multiple Comparison of Means - Tukey HSD, FWER=0.05     
+=============================================================
+   group1      group2   meandiff p-adj   lower  upper  reject
+-------------------------------------------------------------
+   Baseline Competitive   -1.033 0.8797 -6.0613 3.9952  False
+   Baseline Cooperative  -2.4929 0.4891 -7.6222 2.6363  False
+Competitive Cooperative  -1.4599 0.7821 -6.5891 3.6694  False
+-------------------------------------------------------------

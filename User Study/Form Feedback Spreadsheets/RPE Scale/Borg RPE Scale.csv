@@ -1,0 +1,31 @@
+Id,Start time,Completion time,Email,Name,Participant Number,What scenario did you just complete?,Choose the number that best describes your level of exertion.
+1,4/2/2025 19:37,4/2/2025 19:42,anonymous,,2,Baseline,8
+2,4/5/2025 16:36,4/5/2025 16:45,anonymous,,3,Baseline,9
+3,4/5/2025 16:47,4/5/2025 17:11,anonymous,,4,Baseline,"5: Strong, heavy"
+4,4/5/2025 19:03,4/5/2025 19:03,anonymous,,1,Baseline,6
+5,4/5/2025 20:31,4/5/2025 20:38,anonymous,,5,Baseline,7: Very strong
+9,4/8/2025 16:09,4/8/2025 16:15,anonymous,,6,Baseline,8
+10,4/8/2025 16:15,4/8/2025 16:40,anonymous,,7,Baseline,"10: Extremely strong, maximum"
+11,4/9/2025 15:00,4/9/2025 15:09,anonymous,,8,Baseline,7: Very strong
+12,4/9/2025 15:16,4/9/2025 15:42,anonymous,,9,Baseline,3: moderate
+13,4/9/2025 15:51,4/9/2025 16:22,anonymous,,10,Baseline,7: Very strong
+18,4/11/2025 14:55,4/11/2025 15:00,anonymous,,11,Baseline,8
+23,4/12/2025 16:12,4/12/2025 16:12,anonymous,,12,Baseline,"5: Strong, heavy"
+29,4/16/2025 17:24,4/16/2025 17:29,anonymous,,13,Baseline,4
+14,4/11/2025 12:36,4/11/2025 12:41,anonymous,,2,Competitive,9
+15,4/11/2025 12:42,4/11/2025 13:07,anonymous,,6,Competitive,7: Very strong
+16,4/11/2025 13:07,4/11/2025 14:09,anonymous,,1,Competitive,8
+17,4/11/2025 14:39,4/11/2025 14:39,anonymous,,7,Competitive,"10: Extremely strong, maximum"
+19,4/11/2025 16:15,4/11/2025 16:21,anonymous,,10,Competitive,"10: Extremely strong, maximum"
+22,4/12/2025 13:46,4/12/2025 14:52,anonymous,,5,Competitive,"10: Extremely strong, maximum"
+24,4/12/2025 16:21,4/12/2025 17:04,anonymous,,11,Competitive,9
+27,4/15/2025 12:43,4/15/2025 12:44,anonymous,,9,Competitive,7: Very strong
+28,4/16/2025 15:31,4/16/2025 15:34,anonymous,,8,Competitive,9
+30,4/21/2025 12:51,4/21/2025 12:51,anonymous,,13,Competitive,"5: Strong, heavy"
+6,4/7/2025 16:18,4/7/2025 16:40,anonymous,,5,Cooperative,"5: Strong, heavy"
+7,4/8/2025 15:16,4/8/2025 15:31,anonymous,,1,Cooperative,7: Very strong
+8,4/8/2025 15:36,4/8/2025 15:43,anonymous,,2,Cooperative,7: Very strong
+20,4/11/2025 16:25,4/11/2025 16:29,anonymous,,6,Cooperative,7: Very strong
+21,4/12/2025 13:36,4/12/2025 13:45,anonymous,,11,Cooperative,9
+25,4/14/2025 11:45,4/14/2025 11:53,anonymous,,9,Cooperative,6
+26,4/15/2025 10:27,4/15/2025 10:27,anonymous,,8,Cooperative,3: moderate

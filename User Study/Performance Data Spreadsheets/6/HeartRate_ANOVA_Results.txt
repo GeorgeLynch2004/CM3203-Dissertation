@@ -1,0 +1,15 @@
+ANOVA Results for HeartRate:
+
+                     sum_sq      df          F        PR(>F)
+C(Condition)   22080.824776     2.0  42.358362  1.695510e-18
+Residual      310165.223841  1190.0        NaN           NaN
+
+Tukey HSD Results:
+     Multiple Comparison of Means - Tukey HSD, FWER=0.05      
+==============================================================
+   group1      group2   meandiff p-adj  lower    upper  reject
+--------------------------------------------------------------
+   Baseline Competitive   0.8491 0.714  -1.6982  3.3965  False
+   Baseline Cooperative  -9.3777   0.0 -12.1794  -6.576   True
+Competitive Cooperative -10.2268   0.0 -13.0481 -7.4055   True
+--------------------------------------------------------------
