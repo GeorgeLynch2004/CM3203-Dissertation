@@ -87,23 +87,16 @@ public class SessionManager : MonoBehaviour
     {
         InitBikeObjects();
 
-        if (resistanceProfile != ResistanceProfile.Consistent)
-        {
-            // for if resistance is wanted to stay the same
-        }
-
-        // Scenario Mode Logic
-        if (scenarioMode != ScenarioMode.Baseline) 
-        {
-            // baseline logic here    
-        }
         if (scenarioMode == ScenarioMode.Cooperative && activeAI.Count > 1)
         {
             pacelineCoroutine = StartCoroutine(PacelineRoutine());
         }
         if (scenarioMode == ScenarioMode.Competitive && activeAI.Count > 1)
         {
-            raceCoroutine = StartCoroutine(RaceCoroutine(aiPerformanceVariations, DataManager.Instance.GenerateWorkoutProfiles(DataManager.Instance.participantID, Path.Combine(Application.persistentDataPath, "Performance Logs"))));
+            raceCoroutine = StartCoroutine(
+                RaceCoroutine(
+                    aiPerformanceVariations, 
+                    DataManager.Instance.GenerateWorkoutProfiles(DataManager.Instance.participantID, Path.Combine(Application.persistentDataPath, "Performance Logs"))));
         }
     }
 
@@ -121,14 +114,12 @@ public class SessionManager : MonoBehaviour
 
     #region Developer Menu
 
-    // Method to recenter the headset
-    // Method to get the running XR Input Subsystem
-    // Method to get the running XR Input Subsystem
+ 
     private XRInputSubsystem GetXRInputSubsystem()
     {
         List<XRInputSubsystem> inputSubsystems = new List<XRInputSubsystem>();
 
-        // Get all the running XR input subsystems (this will give us a list of subsystems)
+        // Get all the running XR input subsystems
         SubsystemManager.GetInstances(inputSubsystems);
 
         // Log all available subsystems for debugging purposes

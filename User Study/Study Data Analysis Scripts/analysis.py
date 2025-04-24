@@ -144,62 +144,7 @@ def load_imi_data(file_path):
     except Exception as e:
         print(f"[ERROR] Failed to load IMI data: {e}")
         return None
-    try:
-        print(f"Attempting to load IMI data from: {file_path}")
-        df = pd.read_csv(file_path)
-
-        # Column mapping for renaming
-        expected_cols = {
-            'Participant ID:': 'ParticipantID',
-            'What scenario did you complete?': 'Scenario',
-            'I enjoyed engaging in my session very much.': 'Enjoyment1',
-            'After my session, I feel motivated to reach my goals.': 'Motivation',
-            'I put a lot of effort into my session.': 'Effort1',
-            'Engaging in my session was enjoyable.': 'Enjoyment2',
-            'I believe that the method I used to track my workout could be of value to my exercise goals.': 'Value',
-            'I believe I am pretty good at working out.': 'Competence',
-            'I tried very hard during my exercises.': 'Effort2',
-            'I found my session to be interesting.': 'Interest',
-            'I engaged in my workouts because I wanted to.': 'Choice',
-            'I had fun during my session.': 'Fun',
-            'I felt very tense during my session.': 'Pressure1',
-            'I experienced a lot of pressure during my session.': 'Pressure2'
-        }
-
-        # Check if required columns exist
-        if not set(expected_cols.keys()).issubset(df.columns):
-            missing_cols = set(expected_cols.keys()) - set(df.columns)
-            raise ValueError(f"Input file missing required columns: {missing_cols}")
-
-        # Select and rename only the columns we need
-        df = df[list(expected_cols.keys())].rename(columns=expected_cols)
-        
-        # Convert ratings to numeric values
-        for col in df.columns:
-            if col not in ['ParticipantID', 'Scenario']:
-                # Extract numeric part using regex for values like "7: Very True"
-                df[col] = df[col].astype(str).str.extract(r'(\d+)')
-                # Convert to numeric
-                df[col] = pd.to_numeric(df[col], errors="coerce")
-        
-        # Drop rows with missing essential data
-        df = df.dropna(subset=["ParticipantID", "Scenario"])
-        
-        # Find participants who completed all 3 scenarios
-        scenario_counts = df.groupby("ParticipantID")["Scenario"].nunique()
-        complete_ids = scenario_counts[scenario_counts == 3].index
-        
-        # Filter to only include participants who completed all scenarios
-        df = df[df["ParticipantID"].isin(complete_ids)]
-        
-        print(f"Filtered to {len(complete_ids)} participants with all three scenarios.")
-        print(f"Final dataset includes {len(df)} valid IMI entries.")
-        
-        return df
-
-    except Exception as e:
-        print(f"[ERROR] Failed to load IMI data: {e}")
-        sys.exit(1)
+    
 
 #endregion
 
@@ -782,7 +727,7 @@ if __name__ == "__main__":
                     all_data[label] = df
 
                 
-                # === ANALYSIS CALLS ===
+                # Function calls
                 descriptive_statistics(all_data, "Power", subfolder_path)
                 descriptive_statistics(all_data, "HeartRate", subfolder_path)
                 plot_moving_average(all_data, "Power", False, True, subfolder_path)

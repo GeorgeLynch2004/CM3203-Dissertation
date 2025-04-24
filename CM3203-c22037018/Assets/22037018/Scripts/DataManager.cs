@@ -182,7 +182,7 @@ public class DataManager : MonoBehaviour
 
                 messagePopUp = "Beginning to log data in 10 seconds.";
 
-                // set up the writer now the scenario mode has been determined
+                // Set up the writer now the scenario mode has been determined
                 string logFileName = $"{fileName}_{scenarioMode}_{participantID}.csv";
                 directory = Path.Combine(fileDirectory, logFileName);
 
@@ -201,7 +201,7 @@ public class DataManager : MonoBehaviour
                 yield return null;
             }
 
-            // Optionally, you can yield here for a small time to avoid a tight loop:
+            
             yield return null;
         }
 
@@ -242,12 +242,11 @@ public class DataManager : MonoBehaviour
                 }
             }
 
-            // Yield here to avoid tight looping
             yield return null;
         }
 
         listeningForPowerOutput = false; // Stop listening once logging has been stopped
-        // generate graphs
+        // Generate graphs
         GenerateGraphs();
         
     }
@@ -256,9 +255,21 @@ public class DataManager : MonoBehaviour
     {
         string performance_logs_folder = Path.Combine(Application.persistentDataPath, "Performance Logs");
 
-        baselineGraphs.RunDataVisualisationScript(Path.Combine(Application.persistentDataPath, "DataVis.py"), Path.Combine(performance_logs_folder, $"{fileName}_{ScenarioMode.Baseline}_{participantID}.csv"), Path.Combine(Application.persistentDataPath, $"{fileName}_{ScenarioMode.Baseline}_{participantID}.csv"));
-        cooperativeGraphs.RunDataVisualisationScript(Path.Combine(Application.persistentDataPath, "DataVis.py"), Path.Combine(performance_logs_folder, $"{fileName}_{ScenarioMode.Cooperative}_{participantID}.csv"), Path.Combine(Application.persistentDataPath, $"{fileName}_{ScenarioMode.Cooperative}_{participantID}.csv"));
-        competitiveGraphs.RunDataVisualisationScript(Path.Combine(Application.persistentDataPath, "DataVis.py"), Path.Combine(performance_logs_folder, $"{fileName}_{ScenarioMode.Competitive}_{participantID}.csv"), Path.Combine(Application.persistentDataPath, $"{fileName}_{ScenarioMode.Competitive}_{participantID}.csv"));
+        baselineGraphs.RunDataVisualisationScript(
+            Path.Combine(Application.persistentDataPath, "DataVis.py"), 
+            Path.Combine(performance_logs_folder, $"{fileName}_{ScenarioMode.Baseline}_{participantID}.csv"), 
+            Path.Combine(Application.persistentDataPath, $"{fileName}_{ScenarioMode.Baseline}_{participantID}.csv")
+            );
+        cooperativeGraphs.RunDataVisualisationScript(
+            Path.Combine(Application.persistentDataPath, "DataVis.py"), 
+            Path.Combine(performance_logs_folder, $"{fileName}_{ScenarioMode.Cooperative}_{participantID}.csv"), 
+            Path.Combine(Application.persistentDataPath, $"{fileName}_{ScenarioMode.Cooperative}_{participantID}.csv")
+            );
+        competitiveGraphs.RunDataVisualisationScript(
+            Path.Combine(Application.persistentDataPath, "DataVis.py"), 
+            Path.Combine(performance_logs_folder, $"{fileName}_{ScenarioMode.Competitive}_{participantID}.csv"), 
+            Path.Combine(Application.persistentDataPath, $"{fileName}_{ScenarioMode.Competitive}_{participantID}.csv")
+            );
     }
 
 
@@ -443,15 +454,15 @@ public class DataManager : MonoBehaviour
     public float CalculateSpeed(float powerOutput, float dragCoefficient, float frontalArea, float rollingResistanceCoefficient, float bikeMass)
     {
         // Constants
-        const float g = 9.81f;          // Gravitational acceleration (m/s²)
-        const float rho = 1.225f;       // Air density at sea level (kg/m³)
+        const float g = 9.81f;          // Gravitational acceleration (m/s)
+        const float rho = 1.225f;       // Air density at sea level (kg/m)
         const float riderMass = 75.0f;  // Assumed rider mass (kg)
         const float mpsToMph = 2.237f;  // Conversion factor from m/s to mph
 
-        // Total mass (bike + rider)
+        // Total mass
         float totalMass = bikeMass + riderMass;
 
-        // Calculate rolling resistance (F_r = C_rr * m * g)
+        // Calculate rolling resistance
         float rollingResistance = rollingResistanceCoefficient * totalMass * g;
 
         // Solving for speed using the power equation:
@@ -533,8 +544,8 @@ public class DataManager : MonoBehaviour
         {
             string[] files = Directory.GetFiles(performance_log_directory);
             string[] participantIDFiles = files
-    .Where(file => Path.GetFileName(file).Contains(id.ToString()) && !file.EndsWith(".meta"))
-    .ToArray();
+            .Where(file => Path.GetFileName(file).Contains(id.ToString()) && !file.EndsWith(".meta"))
+            .ToArray();
 
 
             if (participantIDFiles.Length > 0)
