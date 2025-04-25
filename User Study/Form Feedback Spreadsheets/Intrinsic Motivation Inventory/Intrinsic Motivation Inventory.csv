@@ -29,3 +29,8 @@ Id,Start time,Completion time,Email,Name,Participant ID:,What scenario did you c
 12,4/9/2025 15:16,4/9/2025 15:43,anonymous,,9,Baseline,5,3,4,4,6,4,5,5,6,7: Very True,4,2
 25,4/14/2025 11:46,4/14/2025 11:52,anonymous,,9,Cooperative,6,6,7: Very True,6,5,4,6,6,7: Very True,6,7: Very True,4
 27,4/15/2025 12:43,4/15/2025 12:46,anonymous,,9,Competitive,6,7: Very True,7: Very True,7: Very True,7: Very True,5,7: Very True,7: Very True,7: Very True,7: Very True,7: Very True,4
+31,4/21/2025 18:13,4/21/2025 18:19,anonymous,,13,Cooperative,5,6,6,5,6,6,6,6,7: Very True,6,6,4
+32,4/22/2025 12:10,4/22/2025 12:16,anonymous,,14,Baseline,4,3,2,4,6,2,3,4,5,4,2,1: Not True
+33,4/22/2025 12:28,4/22/2025 13:42,anonymous,,15,Baseline,5,5,5,5,6,4,4,5,6,5,5,5
+34,4/24/2025 14:12,4/24/2025 14:17,anonymous,,14,Competitive,5,5,5,6,7: Very True,3,5,6,5,6,3,3
+35,4/25/2025 12:00,4/25/2025 12:31,anonymous,,14,Cooperative,6,5,6,5,6,3,5,6,5,5,3,3

@@ -148,72 +148,6 @@ def load_imi_data(file_path):
 
 #endregion
 
-#region Descriptive Stats
-
-def descriptive_statistics(all_data, metric, output_dir):
-    try:
-        # Calculate statistics (Mean, Median, Std, CV)
-        stats_df = pd.DataFrame([{
-            "Condition": label,
-            "Mean": np.mean(df[metric]),
-            "Median": np.median(df[metric]),
-            "Std": np.std(df[metric]),
-            "CV (%)": 100 * (np.std(df[metric]) / np.mean(df[metric]))
-        } for label, df in all_data.items()])
-        
-        print(f"\nDescriptive Statistics for {metric}:\n", stats_df)
-
-        # Set up consistent condition order
-        base_order = ["Baseline", "Cooperative", "Competitive"]
-        
-        # Create a DataFrame in the same format as the RPE function
-        plot_df = pd.DataFrame()
-        for label, df in all_data.items():
-            temp_df = df.copy()
-            temp_df["Scenario"] = label
-            plot_df = pd.concat([plot_df, temp_df])
-        
-        # Get count for each scenario
-        counts = {label: len(df) for label, df in all_data.items()}
-        
-        # Create ordered labels with counts
-        label_map = {s: f"{s} (n={counts.get(s, 0)})" for s in base_order}
-        plot_df["ScenarioLabel"] = plot_df["Scenario"].map(label_map)
-        
-        # Convert to ordered categorical for plotting
-        plot_df["ScenarioLabel"] = pd.Categorical(plot_df["ScenarioLabel"],
-                                             categories=[label_map[s] for s in base_order],
-                                             ordered=True)
-        
-        # Define the color map for the boxplots - same as RPE function
-        color_map = {
-            label_map["Baseline"]: "green",
-            label_map["Cooperative"]: "blue",
-            label_map["Competitive"]: "red"
-        }
-        
-        # Plot
-        plt.figure(figsize=(8, 5))
-        sns.boxplot(data=plot_df, x="ScenarioLabel", y=metric, hue="ScenarioLabel", 
-                    palette=color_map, legend=False)
-        
-        plt.title(f"{metric} Across Scenarios")
-        plt.xlabel("Condition")
-        plt.ylabel(f"{metric} Score")
-        plt.grid(True)
-        plt.tight_layout()
-        
-        # Save the plot
-        save_path = os.path.join(output_dir, f'{metric}_Descriptive_Boxplot.png')
-        plt.savefig(save_path)
-        plt.close()
-        print(f"Saved descriptive boxplot: {save_path}")
-        
-    except Exception as e:
-        print(f"[ERROR] Failed to generate {metric} boxplot: {e}")
-
-#endregion
-
 #region Time Series Analysis
 
 def plot_moving_average(all_data, metric, horizontalLinesFlag, verticalLinesFlag, output_dir, window=30):
@@ -250,41 +184,6 @@ def plot_moving_average(all_data, metric, horizontalLinesFlag, verticalLinesFlag
     plt.close()
     print(f"Saved moving average plot: {save_path}")
 
-#endregion
-
-#region Physiological Metrics
-
-def heart_rate_zones(df, max_hr):
-    zones = {
-        "Zone 1 (<60%)": (0, 0.6),
-        "Zone 2 (60-70%)": (0.6, 0.7),
-        "Zone 3 (70-80%)": (0.7, 0.8),
-        "Zone 4 (80-90%)": (0.8, 0.9),
-        "Zone 5 (90-100%)": (0.9, 1.0)
-    }
-    results = {}
-    for zone, (low, high) in zones.items():
-        time_in_zone = df[(df["HeartRate"] >= max_hr * low) & (df["HeartRate"] < max_hr * high)]["ElapsedSeconds"].count()
-        results[zone] = time_in_zone
-    return results
-
-def hr_recovery_curve(df):
-    end_idx = df["ElapsedSeconds"].idxmax()
-    end_hr = df.loc[end_idx, "HeartRate"]
-    recovery_df = df.iloc[end_idx:end_idx+60]  # Adjust time window
-    recovery_drop = end_hr - recovery_df["HeartRate"].min()
-    return recovery_drop
-
-#endregion
-
-#region Correlations
-
-def performance_correlations(all_data):
-    for label, df in all_data.items():
-        corr = df["Power"].corr(df["Cadence"])
-        ratio = (df["Power"] / df["HeartRate"]).mean()
-        print(f"{label} - Power/Cadence Corr: {corr:.2f}, Power/HR Efficiency: {ratio:.2f}")
-        
 #endregion
 
 #region ANOVA and Stats Tests
@@ -335,6 +234,57 @@ def run_anova(all_data, metric, output_dir):
 #endregion
 
 #region Rate of Perceived Exertion
+
+def analyze_rpe_differences(csv_path):
+    """
+    Analyze RPE data by calculating average scores per scenario and the percentage differences
+    between scenarios.
+    
+    Parameters:
+    -----------
+    csv_path : str
+        Path to the RPE data CSV file
+        
+    Returns:
+    --------
+    tuple
+        (average_rpe_dict, percentage_diff_dict)
+    """
+    try:
+        # Load the RPE data
+        df = load_rpe_scale_data(csv_path)
+        
+        # Calculate average RPE for each scenario
+        avg_rpe = df.groupby('Scenario')['RPE'].mean().to_dict()
+        print("\nAverage RPE Scores:")
+        for scenario, score in avg_rpe.items():
+            print(f"{scenario}: {score:.2f}")
+        
+        # Calculate percentage differences between scenarios
+        scenarios = ["Baseline", "Cooperative", "Competitive"]
+        percent_diff = {}
+        
+        for i, scenario1 in enumerate(scenarios):
+            for scenario2 in scenarios[i+1:]:
+                # Calculate how much greater scenario2 is compared to scenario1
+                if scenario1 in avg_rpe and scenario2 in avg_rpe:
+                    diff_key = f"{scenario2} vs {scenario1}"
+                    percent_diff[diff_key] = ((avg_rpe[scenario2] - avg_rpe[scenario1]) / avg_rpe[scenario1]) * 100
+                    
+                    # Calculate how much greater scenario1 is compared to scenario2
+                    reverse_key = f"{scenario1} vs {scenario2}"
+                    percent_diff[reverse_key] = ((avg_rpe[scenario1] - avg_rpe[scenario2]) / avg_rpe[scenario2]) * 100
+        
+        print("\nPercentage Differences:")
+        for comparison, diff in percent_diff.items():
+            direction = "higher" if diff > 0 else "lower"
+            print(f"{comparison}: {abs(diff):.2f}% {direction}")
+            
+        return avg_rpe, percent_diff
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to analyze RPE differences: {e}")
+        return {}, {}
 
 def generate_rpe_boxplot(csv_path, output_path="RPE_Boxplot.png"):
     try:
@@ -691,6 +641,7 @@ if __name__ == "__main__":
     imi_folder = "C:/Users/georg/OneDrive/Desktop/Personal Github/CM3203-Dissertation/User Study/Form Feedback Spreadsheets/Intrinsic Motivation Inventory/Intrinsic Motivation Inventory.csv"
     imi_output_path = "C:/Users/georg/OneDrive/Desktop/Personal Github/CM3203-Dissertation/User Study/Form Feedback Spreadsheets/Intrinsic Motivation Inventory/"
 
+    analyze_rpe_differences(rpe_folder)
     generate_rpe_boxplot(rpe_folder, rpe_output_path)
     run_imi_analysis(imi_folder, imi_output_path)
     print(load_imi_data(imi_folder))
@@ -728,21 +679,10 @@ if __name__ == "__main__":
 
                 
                 # Function calls
-                descriptive_statistics(all_data, "Power", subfolder_path)
-                descriptive_statistics(all_data, "HeartRate", subfolder_path)
                 plot_moving_average(all_data, "Power", False, True, subfolder_path)
                 plot_moving_average(all_data, "HeartRate", True, False, subfolder_path)
-                performance_correlations(all_data)
                 run_anova(all_data, "Power", subfolder_path)
                 run_anova(all_data, "HeartRate", subfolder_path)
 
-                # Example HR zone and recovery (assume max HR = 200 for placeholder)
-                for label, df in all_data.items():
-                    print(f"\nHR Zones for {label}:")
-                    zones = heart_rate_zones(df, max_hr=200)
-                    for zone, time in zones.items():
-                        print(f"{zone}: {time} samples")
-                    recovery = hr_recovery_curve(df)
-                    print(f"{label} HR Recovery: {recovery:.2f} BPM drop")
 
 #endregion
