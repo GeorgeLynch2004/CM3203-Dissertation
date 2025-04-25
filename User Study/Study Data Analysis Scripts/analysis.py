@@ -6,6 +6,7 @@ import matplotlib.colors as mcolors
 from matplotlib.patches import Polygon
 import matplotlib.cm as cm
 import seaborn as sns
+from pathlib import Path
 import numpy as np
 import os
 import sys
@@ -47,7 +48,7 @@ def load_rpe_scale_data(file_path):
         }
 
         if not set(expected_cols.keys()).issubset(df.columns):
-            raise ValueError("Input file must contain: 'Participant Number', 'What scenario...', and 'Choose the number...' columns.")
+            raise ValueError("Input file must contain the correct columns.")
 
         # Rename and select necessary columns
         df = df[list(expected_cols.keys())].rename(columns=expected_cols)
@@ -75,19 +76,6 @@ def load_rpe_scale_data(file_path):
         sys.exit(1)
 
 def load_imi_data(file_path):
-    """
-    Load and preprocess the IMI data from a CSV file.
-    
-    Parameters:
-    -----------
-    file_path : str
-        Path to the IMI data CSV file
-        
-    Returns:
-    --------
-    pandas.DataFrame
-        Processed IMI data
-    """
     try:
         print(f"Attempting to load IMI data from: {file_path}")
         df = pd.read_csv(file_path)
@@ -186,70 +174,10 @@ def plot_moving_average(all_data, metric, horizontalLinesFlag, verticalLinesFlag
 
 #endregion
 
-#region ANOVA and Stats Tests
-
-def run_anova(all_data, metric, output_dir):
-    data = []
-    for label, df in all_data.items():
-        if df.empty or metric not in df.columns:
-            print(f"[WARNING] Data for '{label}' is empty or missing '{metric}' column. Skipping.")
-            continue
-        valid_values = df[metric].dropna()
-        if valid_values.empty:
-            print(f"[WARNING] No valid '{metric}' values in '{label}'. Skipping.")
-            continue
-        for value in valid_values:
-            data.append({"Condition": label, metric: value})
-
-    data_df = pd.DataFrame(data)
-
-    if data_df.empty:
-        print(f"[WARNING] No valid data available for ANOVA on metric '{metric}'. Skipping.")
-        return
-
-    if data_df["Condition"].nunique() < 2:
-        print(f"[WARNING] Not enough conditions with data to perform ANOVA for '{metric}'. Skipping.")
-        return
-
-    try:
-        model = ols(f'{metric} ~ C(Condition)', data=data_df).fit()
-        anova = sm.stats.anova_lm(model, typ=2)
-        print(f"\nANOVA Results for {metric}:\n", anova)
-
-        tukey = pairwise_tukeyhsd(data_df[metric], data_df['Condition'])
-
-        # Save results
-        output_file = os.path.join(output_dir, f"{metric}_ANOVA_Results.txt")
-        with open(output_file, "w") as f:
-            f.write(f"ANOVA Results for {metric}:\n\n")
-            f.write(str(anova))
-            f.write("\n\nTukey HSD Results:\n")
-            f.write(str(tukey))
-
-        print(f"Saved ANOVA + Tukey results to: {output_file}")
-
-    except Exception as e:
-        print(f"[ERROR] Failed to run ANOVA for '{metric}': {e}")
-
-#endregion
 
 #region Rate of Perceived Exertion
 
-def analyze_rpe_differences(csv_path):
-    """
-    Analyze RPE data by calculating average scores per scenario and the percentage differences
-    between scenarios.
-    
-    Parameters:
-    -----------
-    csv_path : str
-        Path to the RPE data CSV file
-        
-    Returns:
-    --------
-    tuple
-        (average_rpe_dict, percentage_diff_dict)
-    """
+def analyse_rpe_differences(csv_path):
     try:
         # Load the RPE data
         df = load_rpe_scale_data(csv_path)
@@ -483,57 +411,7 @@ def perform_statistical_tests(df):
         return pd.DataFrame()
 
     
-    except Exception as e:
-        print(f"[ERROR] Failed to perform correlation analysis: {e}")
-        return {}
 
-def plot_participant_trajectories(df, output_dir="output"):
-    
-    try:
-        os.makedirs(output_dir, exist_ok=True)
-        
-        # Define scenario order for x-axis
-        scenario_order = ["Baseline", "Cooperative", "Competitive"]
-        
-        # Plot trajectories for each composite subscale
-        for subscale in IMI_SUBSCALES.keys():
-            plt.figure(figsize=(10, 6))
-            
-            # Create a pivot table for easier plotting
-            pivot_df = df.pivot(index='ParticipantID', columns='Scenario', values=subscale)
-            
-            # Reorder columns to match our desired order
-            pivot_df = pivot_df[scenario_order]
-            
-            # Plot each participant's trajectory
-            for idx, row in pivot_df.iterrows():
-                plt.plot(scenario_order, row.values, marker='o', alpha=0.6, 
-                        label=f"P{int(idx)}")
-            
-            # Plot the mean trajectory with a thicker line
-            mean_values = [pivot_df[col].mean() for col in scenario_order]
-            plt.plot(scenario_order, mean_values, 'k-', linewidth=3, marker='D', 
-                    markersize=10, label="Mean")
-            
-            plt.title(f"Individual Participant Trajectories: {subscale}")
-            plt.xlabel("Scenario")
-            plt.ylabel(f"{subscale} Score (1-7)")
-            plt.ylim(0.5, 7.5)
-            plt.grid(True, alpha=0.3)
-            
-            # Only show legend for smaller participant counts
-            participant_count = len(pivot_df)
-            if participant_count <= 10:
-                plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
-            
-            plt.tight_layout()
-            plt.savefig(os.path.join(output_dir, f"{subscale}_Trajectories.png"))
-            plt.close()
-            
-            print(f"Saved {subscale} trajectory plot")
-    
-    except Exception as e:
-        print(f"[ERROR] Failed to plot participant trajectories: {e}")
 
 def generate_radar_charts(df, output_dir="output"):
     
@@ -635,13 +513,15 @@ def run_imi_analysis(csv_path, output_dir="imi_analysis_output"):
 #region Main Execution
 if __name__ == "__main__":
 
-    study_folder = "C:/Users/georg/OneDrive/Desktop/Personal Github/CM3203-Dissertation/User Study/Performance Data Spreadsheets"
-    rpe_folder = "C:/Users/georg/OneDrive/Desktop/Personal Github/CM3203-Dissertation/User Study/Form Feedback Spreadsheets/RPE Scale/Borg RPE Scale.csv"
-    rpe_output_path = "C:/Users/georg/OneDrive/Desktop/Personal Github/CM3203-Dissertation/User Study/Form Feedback Spreadsheets/RPE Scale/RPE_BoxPlot.png"
-    imi_folder = "C:/Users/georg/OneDrive/Desktop/Personal Github/CM3203-Dissertation/User Study/Form Feedback Spreadsheets/Intrinsic Motivation Inventory/Intrinsic Motivation Inventory.csv"
-    imi_output_path = "C:/Users/georg/OneDrive/Desktop/Personal Github/CM3203-Dissertation/User Study/Form Feedback Spreadsheets/Intrinsic Motivation Inventory/"
+    base_dir = Path(__file__).resolve().parents[2] / "User Study"
 
-    analyze_rpe_differences(rpe_folder)
+    study_folder = base_dir / "Performance Data Spreadsheets"
+    rpe_folder = base_dir / "Form Feedback Spreadsheets" / "RPE Scale" / "Borg RPE Scale.csv"
+    rpe_output_path = base_dir / "Form Feedback Spreadsheets" / "RPE Scale" / "RPE_BoxPlot.png"
+    imi_folder = base_dir / "Form Feedback Spreadsheets" / "Intrinsic Motivation Inventory" / "Intrinsic Motivation Inventory.csv"
+    imi_output_path = base_dir / "Form Feedback Spreadsheets" / "Intrinsic Motivation Inventory"
+
+    analyse_rpe_differences(rpe_folder)
     generate_rpe_boxplot(rpe_folder, rpe_output_path)
     run_imi_analysis(imi_folder, imi_output_path)
     print(load_imi_data(imi_folder))
@@ -681,8 +561,6 @@ if __name__ == "__main__":
                 # Function calls
                 plot_moving_average(all_data, "Power", False, True, subfolder_path)
                 plot_moving_average(all_data, "HeartRate", True, False, subfolder_path)
-                run_anova(all_data, "Power", subfolder_path)
-                run_anova(all_data, "HeartRate", subfolder_path)
 
 
 #endregion
