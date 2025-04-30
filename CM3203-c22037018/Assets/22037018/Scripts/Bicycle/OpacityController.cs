@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class OpacityController : MonoBehaviour
 {
-    public Transform player; // Reference to the player object
-    public float maxDistance = 3f; // Maximum distance for full opacity
+    public Transform player; 
+    public float maxDistance = 3f; 
     [SerializeField] private Renderer[] renderers;
     [SerializeField] private Color[] originalColors;
 

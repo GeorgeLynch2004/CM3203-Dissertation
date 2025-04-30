@@ -1,25 +1,24 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.AI; // Required for accessing NavMeshAgent
+using UnityEngine.AI;
 
 public class SlopeRotation : MonoBehaviour
 {
-    [SerializeField] private float raycastDistance = 10f; // Max distance of the raycast, can adjust based on terrain height
+    [SerializeField] private float raycastDistance = 10f; 
     [SerializeField] private Transform leftOrigin;
     [SerializeField] private Transform rightOrigin;
-    [SerializeField] private LayerMask layerMask; // Add a LayerMask field to specify the "Bike Track" layer
+    [SerializeField] private LayerMask layerMask; 
     [SerializeField] private float currentLeanAngle;
-    [SerializeField] private float speedThreshold = 12f; // Speed threshold to start leaning
-    [SerializeField] private float lerpTime = 0.5f; // Time it takes to lerp in and out
+    [SerializeField] private float speedThreshold = 12f; 
+    [SerializeField] private float lerpTime = 0.5f; 
 
-    private NavMeshAgent agent; // Reference to the NavMeshAgent
-    private float targetLeanAngle; // The target angle we want to reach
-    private float currentLerpTime = 0f; // Timer to keep track of lerping
+    private NavMeshAgent agent;
+    private float targetLeanAngle; 
+    private float currentLerpTime = 0f; 
 
     void Start()
     {
-        // Get the NavMeshAgent component on the same GameObject
         agent = GetComponent<NavMeshAgent>();
     }
 
@@ -61,7 +60,7 @@ public class SlopeRotation : MonoBehaviour
             targetLeanAngle = 0f;
         }
 
-        // Smoothly interpolate to the target angle
+        // Interpolate to the target angle
         if (Mathf.Abs(targetLeanAngle - currentLeanAngle) > 0.01f) // Check if a significant difference exists
         {
             currentLeanAngle = Mathf.LerpAngle(currentLeanAngle, targetLeanAngle, Time.deltaTime / lerpTime);
