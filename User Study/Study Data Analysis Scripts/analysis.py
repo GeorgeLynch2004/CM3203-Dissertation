@@ -133,6 +133,36 @@ def load_imi_data(file_path):
         print(f"[ERROR] Failed to load IMI data: {e}")
         return None
     
+def load_post_scenario_likert_data(file_path):
+    # Read the CSV file
+    df = pd.read_csv(file_path)
+    
+    # Identify Likert scale columns (those that start with a dot or contain numbered scale responses)
+    likert_columns = [col for col in df.columns if col.startswith('.') or 
+                     ('1: Strongly Disagree' in str(df[col].values) or 
+                      '7: Strongly Agree' in str(df[col].values))]
+    
+    # Add the scenario column which we need for grouping
+    columns_to_keep = ['What Scenario did you complete?'] + likert_columns
+    
+    # Create a new DataFrame with only the selected columns
+    likert_df = df[columns_to_keep].copy()
+    
+    # Rename the scenario column for clarity
+    likert_df = likert_df.rename(columns={'What Scenario did you complete?': 'Scenario'})
+    
+    # Clean the Likert scale responses by extracting only the numerical part
+    for column in likert_columns:
+        likert_df[column] = likert_df[column].astype(str).str.extract(r'(\d+)').astype(float)
+    
+    # Replace empty scenario values with "Baseline" based on the pattern observed in the data
+    # (Some early entries don't have scenario labels but appear to be baseline)
+    likert_df['Scenario'] = likert_df['Scenario'].fillna('Baseline')
+    
+    # Clean up the column names for better readability
+    likert_df.columns = [col.replace('.', '') for col in likert_df.columns]
+    
+    return likert_df
 
 #endregion
 
@@ -510,6 +540,16 @@ def run_imi_analysis(csv_path, output_dir="imi_analysis_output"):
 
 #endregion
 
+#region Post Scenario Questionnaire Analysis
+
+def calculate_likert_means(likert_df):
+    means_by_scenario = likert_df.groupby('Scenario').mean().round(2)
+    means_by_scenario = means_by_scenario.rename_axis('Scenario').reset_index()
+    
+    return means_by_scenario
+
+#endregion
+
 #region Main Execution
 if __name__ == "__main__":
 
@@ -520,11 +560,15 @@ if __name__ == "__main__":
     rpe_output_path = base_dir / "Form Feedback Spreadsheets" / "RPE Scale" / "RPE_BoxPlot.png"
     imi_folder = base_dir / "Form Feedback Spreadsheets" / "Intrinsic Motivation Inventory" / "Intrinsic Motivation Inventory.csv"
     imi_output_path = base_dir / "Form Feedback Spreadsheets" / "Intrinsic Motivation Inventory"
+    psq_folder = base_dir / "Form Feedback Spreadsheets" / "Post Scenario Questionnaire" / "VR Cycling Ramp Test Post-Scenario Questionnaire.csv"
+    psq_output_path = base_dir / "Form Feedback Spreadsheets" / "Post Scenario Questionnaire" / "Post-Scenario Likert Means.csv"
 
     analyse_rpe_differences(rpe_folder)
     generate_rpe_boxplot(rpe_folder, rpe_output_path)
     run_imi_analysis(imi_folder, imi_output_path)
     print(load_imi_data(imi_folder))
+    print(calculate_likert_means(load_post_scenario_likert_data(psq_folder)).to_csv(psq_output_path, index=True))
+    print(f"Saved post-scenario questionnaire means to: {psq_output_path}")
     
     for subfolder in sorted(os.listdir(study_folder)):
         subfolder_path = os.path.join(study_folder, subfolder)
