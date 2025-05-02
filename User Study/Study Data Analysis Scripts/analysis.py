@@ -151,13 +151,29 @@ def load_post_scenario_likert_data(file_path):
     # Rename the scenario column for clarity
     likert_df = likert_df.rename(columns={'What Scenario did you complete?': 'Scenario'})
     
+    # Replace empty scenario values with "Baseline" based on the pattern observed in the data
+    # (Some early entries don't have scenario labels but appear to be baseline)
+    likert_df['Scenario'] = likert_df['Scenario'].fillna('Baseline')
+    
     # Clean the Likert scale responses by extracting only the numerical part
     for column in likert_columns:
         likert_df[column] = likert_df[column].astype(str).str.extract(r'(\d+)').astype(float)
     
-    # Replace empty scenario values with "Baseline" based on the pattern observed in the data
-    # (Some early entries don't have scenario labels but appear to be baseline)
-    likert_df['Scenario'] = likert_df['Scenario'].fillna('Baseline')
+    # Handle scenario-specific questions
+    # Identify scenario-specific columns
+    cooperative_columns = [col for col in likert_df.columns if 'Team scenario' in col or 'Cooperative' in col]
+    competitive_columns = [col for col in likert_df.columns if 'Competitive scenario' in col]
+    solo_columns = [col for col in likert_df.columns if 'Solo' in col or 'Baseline' in col]
+    
+    # For each scenario-specific column, set values to NaN for irrelevant scenarios
+    for col in cooperative_columns:
+        likert_df.loc[likert_df['Scenario'] != 'Cooperative', col] = np.nan
+        
+    for col in competitive_columns:
+        likert_df.loc[likert_df['Scenario'] != 'Competitive', col] = np.nan
+        
+    for col in solo_columns:
+        likert_df.loc[~likert_df['Scenario'].isin(['Baseline', '']), col] = np.nan
     
     # Clean up the column names for better readability
     likert_df.columns = [col.replace('.', '') for col in likert_df.columns]
@@ -548,6 +564,91 @@ def calculate_likert_means(likert_df):
     
     return means_by_scenario
 
+def generate_likert_boxplots(csv_path, output_dir):
+    try:
+        # Make sure output directory exists
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Load the post-scenario questionnaire data
+        print(f"Loading post-scenario questionnaire data from: {csv_path}")
+        df = load_post_scenario_likert_data(csv_path)
+        
+        # Define the base order and create scenario labels with counts
+        base_order = ["Baseline", "Cooperative", "Competitive"]
+        counts = df["Scenario"].value_counts().to_dict()
+        label_map = {s: f"{s} (n={counts.get(s, 0)})" for s in base_order}
+        
+        # Add scenario labels to the dataframe
+        df["ScenarioLabel"] = df["Scenario"].map(label_map)
+        
+        # Convert to ordered categorical for plotting
+        df["ScenarioLabel"] = pd.Categorical(
+            df["ScenarioLabel"],
+            categories=[label_map[s] for s in base_order if s in label_map],
+            ordered=True
+        )
+        
+        # Define the color map for the box plots
+        color_map = {
+            label_map.get("Baseline", "Baseline"): "green",
+            label_map.get("Cooperative", "Cooperative"): "blue",
+            label_map.get("Competitive", "Competitive"): "red"
+        }
+        
+        # Get all Likert scale columns (excluding 'Scenario' and 'ScenarioLabel')
+        likert_columns = [col for col in df.columns 
+                          if col not in ['Scenario', 'ScenarioLabel'] 
+                          and not pd.isna(df[col]).all()]
+        
+        # Generate individual box plots for each Likert scale question
+        for column in likert_columns:
+            # Skip columns with all NaN values
+            if df[column].isna().all():
+                continue
+                
+            # Create a figure for the current Likert scale question
+            plt.figure(figsize=(10, 6))
+            
+            # Create the box plot
+            sns.boxplot(
+                data=df, 
+                x="ScenarioLabel", 
+                y=column, 
+                hue="ScenarioLabel", 
+                palette=color_map, 
+                legend=False
+            )
+            
+            # Clean the column name for the title
+            clean_title = column.strip().capitalize()
+            if len(clean_title) > 50:
+                clean_title = clean_title[:47] + "..."
+                
+            # Set title and labels
+            plt.title(f"{clean_title} Across Scenarios")
+            plt.xlabel("Scenario")
+            plt.ylabel("Rating (1-7)")
+            plt.ylim(0.5, 7.5)  # Set y-axis for 1-7 scale
+            plt.grid(True, linestyle='--', alpha=0.7)
+            plt.tight_layout()
+            
+            # Create a valid filename from the column name
+            safe_filename = re.sub(r'[^\w\s-]', '', column).strip().replace(' ', '_')
+            if len(safe_filename) > 100:
+                safe_filename = safe_filename[:100]
+                
+            # Save the figure
+            output_path = os.path.join(output_dir, f"{safe_filename}_boxplot.png")
+            plt.savefig(output_path, dpi=300)
+            plt.close()
+            
+            print(f"Saved box plot for '{clean_title}' to: {output_path}")
+        
+        print(f"\nGenerated {len(likert_columns)} Likert scale box plots in {output_dir}")
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to generate Likert scale box plots: {e}")
+
 #endregion
 
 #region Main Execution
@@ -561,14 +662,15 @@ if __name__ == "__main__":
     imi_folder = base_dir / "Form Feedback Spreadsheets" / "Intrinsic Motivation Inventory" / "Intrinsic Motivation Inventory.csv"
     imi_output_path = base_dir / "Form Feedback Spreadsheets" / "Intrinsic Motivation Inventory"
     psq_folder = base_dir / "Form Feedback Spreadsheets" / "Post Scenario Questionnaire" / "VR Cycling Ramp Test Post-Scenario Questionnaire.csv"
-    psq_output_path = base_dir / "Form Feedback Spreadsheets" / "Post Scenario Questionnaire" / "Post-Scenario Likert Means.csv"
+    psq_output_path = base_dir / "Form Feedback Spreadsheets" / "Post Scenario Questionnaire"
 
     analyse_rpe_differences(rpe_folder)
     generate_rpe_boxplot(rpe_folder, rpe_output_path)
     run_imi_analysis(imi_folder, imi_output_path)
     print(load_imi_data(imi_folder))
-    print(calculate_likert_means(load_post_scenario_likert_data(psq_folder)).to_csv(psq_output_path, index=True))
+    print(calculate_likert_means(load_post_scenario_likert_data(psq_folder)).to_csv(os.path.join(psq_output_path, "Post-Scenario Likert Means.csv"), index=True))
     print(f"Saved post-scenario questionnaire means to: {psq_output_path}")
+    generate_likert_boxplots(psq_folder, psq_output_path)
     
     for subfolder in sorted(os.listdir(study_folder)):
         subfolder_path = os.path.join(study_folder, subfolder)
