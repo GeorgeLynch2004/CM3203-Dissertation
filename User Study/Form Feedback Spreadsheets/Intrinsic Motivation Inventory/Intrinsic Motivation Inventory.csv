@@ -4,13 +4,20 @@ Id,Start time,Completion time,Email,Name,Participant ID:,What scenario did you c
 16,4/11/2025 13:08,4/11/2025 14:12,anonymous,,1,Competitive,6,5,6,6,6,5,6,6,7: Very True,7: Very True,5,6
 13,4/9/2025 15:51,4/9/2025 16:23,anonymous,,10,Baseline,4,3,6,4,6,5,6,5,6,5,3,1: Not True
 19,4/11/2025 16:15,4/11/2025 16:23,anonymous,,10,Competitive,6,6,7: Very True,6,6,5,7: Very True,6,6,6,3,1: Not True
+36,4/30/2025 15:20,4/30/2025 15:21,anonymous,,10,Cooperative,6,6,6,6,5,6,6,6,6,6,1: Not True,1: Not True
 18,4/11/2025 14:55,4/11/2025 15:01,anonymous,,11,Baseline,6,7: Very True,6,5,6,6,6,5,6,6,3,5
 21,4/12/2025 13:36,4/12/2025 13:45,anonymous,,11,Cooperative,6,6,7: Very True,7: Very True,6,6,6,7: Very True,7: Very True,7: Very True,4,5
 24,4/12/2025 16:22,4/12/2025 17:05,anonymous,,11,Competitive,7: Very True,7: Very True,7: Very True,6,6,7: Very True,7: Very True,7: Very True,7: Very True,7: Very True,4,5
 23,4/12/2025 16:13,4/12/2025 16:13,anonymous,,12,Baseline,5,6,7: Very True,6,7: Very True,4,7: Very True,6,6,6,5,6
 29,4/16/2025 17:24,4/16/2025 17:30,anonymous,,13,Baseline,5,5,5,5,5,3,4,5,5,5,4,2
 30,4/21/2025 12:51,4/21/2025 12:52,anonymous,,13,Competitive,6,6,6,6,6,6,6,6,6,6,6,4
-1,4/2/2025 19:20,4/2/2025 19:42,anonymous,,2,,7: Very True,7: Very True,6,7: Very True,7: Very True,5,6,5,7: Very True,7: Very True,3,3
+31,4/21/2025 18:13,4/21/2025 18:19,anonymous,,13,Cooperative,5,6,6,5,6,6,6,6,7: Very True,6,6,4
+32,4/22/2025 12:10,4/22/2025 12:16,anonymous,,14,Baseline,4,3,2,4,6,2,3,4,5,4,2,1: Not True
+34,4/24/2025 14:12,4/24/2025 14:17,anonymous,,14,Competitive,5,5,5,6,7: Very True,3,5,6,5,6,3,3
+35,4/25/2025 12:00,4/25/2025 12:31,anonymous,,14,Cooperative,6,5,6,5,6,3,5,6,5,5,3,3
+33,4/22/2025 12:28,4/22/2025 13:42,anonymous,,15,Baseline,5,5,5,5,6,4,4,5,6,5,5,5
+38,5/6/2025 16:14,5/6/2025 16:17,anonymous,,15,Competitive,7: Very True,7: Very True,7: Very True,7: Very True,7: Very True,6,6,7: Very True,7: Very True,6,7: Very True,7: Very True
+1,4/2/2025 19:20,4/2/2025 19:42,anonymous,,2,Baseline,7: Very True,7: Very True,6,7: Very True,7: Very True,5,6,5,7: Very True,7: Very True,3,3
 8,4/8/2025 15:36,4/8/2025 15:43,anonymous,,2,Cooperative,7: Very True,7: Very True,7: Very True,7: Very True,6,5,6,5,6,6,3,3
 14,4/11/2025 12:36,4/11/2025 12:42,anonymous,,2,Competitive,7: Very True,7: Very True,7: Very True,7: Very True,7: Very True,6,7: Very True,7: Very True,7: Very True,7: Very True,4,5
 2,4/5/2025 16:36,4/5/2025 16:44,anonymous,,3,Baseline,4,2,7: Very True,5,5,3,6,5,7: Very True,3,6,4
@@ -23,14 +30,11 @@ Id,Start time,Completion time,Email,Name,Participant ID:,What scenario did you c
 20,4/11/2025 16:25,4/11/2025 16:30,anonymous,,6,Cooperative,7: Very True,6,5,7: Very True,6,6,6,7: Very True,7: Very True,7: Very True,2,2
 10,4/8/2025 16:15,4/8/2025 16:40,anonymous,,7,Baseline,7: Very True,7: Very True,7: Very True,7: Very True,7: Very True,7: Very True,7: Very True,6,7: Very True,7: Very True,4,4
 17,4/11/2025 14:39,4/11/2025 14:40,anonymous,,7,Competitive,7: Very True,7: Very True,7: Very True,7: Very True,6,7: Very True,7: Very True,7: Very True,7: Very True,7: Very True,4,5
+37,5/5/2025 17:09,5/5/2025 17:12,anonymous,,7,Cooperative,4,4,7: Very True,5,4,5,7: Very True,4,7: Very True,5,4,1: Not True
 11,4/9/2025 14:59,4/9/2025 15:11,anonymous,,8,Baseline,7: Very True,7: Very True,6,7: Very True,7: Very True,6,6,7: Very True,7: Very True,7: Very True,4,1: Not True
 26,4/15/2025 10:26,4/15/2025 10:28,anonymous,,8,Cooperative,7: Very True,7: Very True,3,7: Very True,7: Very True,6,3,7: Very True,7: Very True,7: Very True,1: Not True,1: Not True
 28,4/16/2025 15:31,4/16/2025 15:33,anonymous,,8,Competitive,7: Very True,7: Very True,7: Very True,7: Very True,7: Very True,6,6,7: Very True,7: Very True,7: Very True,2,1: Not True
 12,4/9/2025 15:16,4/9/2025 15:43,anonymous,,9,Baseline,5,3,4,4,6,4,5,5,6,7: Very True,4,2
 25,4/14/2025 11:46,4/14/2025 11:52,anonymous,,9,Cooperative,6,6,7: Very True,6,5,4,6,6,7: Very True,6,7: Very True,4
 27,4/15/2025 12:43,4/15/2025 12:46,anonymous,,9,Competitive,6,7: Very True,7: Very True,7: Very True,7: Very True,5,7: Very True,7: Very True,7: Very True,7: Very True,7: Very True,4
-31,4/21/2025 18:13,4/21/2025 18:19,anonymous,,13,Cooperative,5,6,6,5,6,6,6,6,7: Very True,6,6,4
-32,4/22/2025 12:10,4/22/2025 12:16,anonymous,,14,Baseline,4,3,2,4,6,2,3,4,5,4,2,1: Not True
-33,4/22/2025 12:28,4/22/2025 13:42,anonymous,,15,Baseline,5,5,5,5,6,4,4,5,6,5,5,5
-34,4/24/2025 14:12,4/24/2025 14:17,anonymous,,14,Competitive,5,5,5,6,7: Very True,3,5,6,5,6,3,3
-35,4/25/2025 12:00,4/25/2025 12:31,anonymous,,14,Cooperative,6,5,6,5,6,3,5,6,5,5,3,3
+39,5/7/2025 13:41,5/7/2025 13:44,anonymous,,15,Cooperative,6,7: Very True,7: Very True,6,6,7: Very True,5,7: Very True,7: Very True,6,7: Very True,7: Very True
